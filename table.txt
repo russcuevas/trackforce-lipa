@@ -1,0 +1,82 @@
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    badge_number VARCHAR(20) UNIQUE, -- For Investigators
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE incidents (
+    incident_id INT AUTO_INCREMENT PRIMARY KEY,
+    report_number VARCHAR(20) UNIQUE NOT NULL, -- Format: TFL-YYYY-XXXX
+    incident_type VARCHAR(255) NOT NULL,  // Accident Violation Public Disturbance Other
+
+    -- Location & Environment (From Chapter 4 Findings)
+    location_name VARCHAR(255) NOT NULL,
+    latitude DECIMAL(10, 8) NOT NULL,
+    longitude DECIMAL(11, 8) NOT NULL,
+    road_condition VARCHAR(100) NULL, -- e.g., Wet, Dry, Under Construction
+    weather_condition VARCHAR(100) NULL, -- e.g., Clear, Raining, Foggy
+    
+    -- Reporter (Citizen/First Responder)
+    reporter_name VARCHAR(100) NULL,
+    reporter_contact VARCHAR(20) NULL,
+    reporter_address TEXT NULL,
+    is_first_responder BOOLEAN DEFAULT FALSE,
+    
+    -- Status & Analytics
+    status ENUM('Pending', 'Under Investigation', 'Completed/Solved') DEFAULT 'Pending',
+    time_reported TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    time_documented DATETIME NULL,
+    time_completed DATETIME NULL,
+    
+    -- Assignment
+    assigned_investigator_id INT NULL,
+    FOREIGN KEY (assigned_investigator_id) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+CREATE TABLE involved_parties (
+    party_id INT AUTO_INCREMENT PRIMARY KEY,
+    incident_id INT NOT NULL,
+    full_name VARCHAR(100),
+    age INT,
+    sex ENUM('Male', 'Female', 'Other'),
+    role ENUM('Driver', 'Passenger', 'Pedestrian') NOT NULL,
+    license_number VARCHAR(50) NULL,
+    injury_severity ENUM('Fatal', 'Serious', 'Minor', 'Unharmed') DEFAULT 'Unharmed',
+    statement TEXT, -- Qualitative data from the scene
+    FOREIGN KEY (incident_id) REFERENCES incidents(incident_id) ON DELETE CASCADE
+);
+
+CREATE TABLE vehicles (
+    vehicle_id INT AUTO_INCREMENT PRIMARY KEY,
+    incident_id INT NOT NULL,
+    plate_number VARCHAR(20) NULL,
+    vehicle_type VARCHAR(30) NULL, // 'Motorcycle', 'Private Car', 'PUJ', 'Truck', 'Bicycle', 'Other'
+    color VARCHAR(30) NULL,
+    FOREIGN KEY (incident_id) REFERENCES incidents(incident_id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE incident_evidence (
+    evidence_id INT AUTO_INCREMENT PRIMARY KEY,
+    incident_id INT NOT NULL,
+    file_path VARCHAR(255) NOT NULL, -- Storage path for photos/videos
+    file_type VARCHAR(50),
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (incident_id) REFERENCES incidents(incident_id) ON DELETE CASCADE
+);
+
+CREATE TABLE audit_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    incident_id INT NOT NULL,
+    user_id INT NOT NULL,
+    action_performed TEXT NOT NULL, -- e.g., "Updated status to Solved"
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (incident_id) REFERENCES incidents(incident_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+
