@@ -1,11 +1,14 @@
 <?php
 
 use App\Http\Controllers\auth\AuthController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\investigator\AccountController;
 use App\Http\Controllers\investigator\AuditLogsController;
 use App\Http\Controllers\investigator\DashboardController;
 use App\Http\Controllers\investigator\DocumentationController;
 use App\Http\Controllers\investigator\IncidentReportController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\TrackCaseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,9 +22,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+
+Route::get('/', [HomeController::class, 'HomePage'])->name('home.page');
+Route::get('/report', [ReportController::class, 'ReportPage'])->name('report.page');
+Route::get('/track-case', [TrackCaseController::class, 'TrackCasePage'])->name('track.case.page');
+
 
 // AUTH ROUTE
 Route::get('/login', [AuthController::class, 'LoginPage'])->name('auth.login.page');

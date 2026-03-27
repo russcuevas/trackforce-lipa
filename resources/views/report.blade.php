@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrackForce Lipa</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,17 +28,10 @@
             background-color: #f8fafc;
         }
 
-        .bg-tf-blue {
-            background-color: #0B3D91;
-        }
-
-        .bg-tf-red {
-            background-color: #CE1126;
-        }
-
-        .text-tf-yellow {
-            color: #FFD700;
-        }
+        .bg-tf-blue { background-color: #0B3D91; }
+        .bg-tf-red { background-color: #CE1126; }
+        .text-tf-blue { color: #0B3D91; }
+        .text-tf-red { color: #CE1126; }
 
         .section-card {
             background: white;
@@ -45,18 +39,52 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
         }
+
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #CE1126;
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
     </style>
 </head>
 
 <body>
 
-    <nav class="bg-white border-b sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
+<nav class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('images/logo.png') }}" alt="Trackforce Lipa Logo" class="h-10 w-auto object-contain">
-                <span class="font-black text-tf-blue tracking-tighter text-lg uppercase">TRACKFORCE LIPA -
-                    <span style="color: #CE1126">PNP</span></span>
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-12 w-auto object-contain">
+                <div class="leading-none">
+                    <span class="font-black text-tf-blue tracking-tighter text-xl uppercase block">TRACKFORCE LIPA</span>
+                </div>
             </div>
+
+            <div class="hidden md:flex items-center gap-8">
+                <a href="{{ route('home.page') }}" class="nav-link font-bold text-gray-500 hover:text-tf-blue text-sm uppercase tracking-wider">Home</a>
+                <a href="{{ route('track.case.page') }}" class="nav-link font-bold text-gray-500 hover:text-tf-blue text-sm uppercase tracking-wider">Track Case</a>
+                <a href="{{ route('report.page') }}" class="bg-tf-red text-white px-6 py-2.5 rounded-full font-black text-xs uppercase shadow-lg shadow-red-200 hover:bg-red-700 transition-all">
+                    Report Incident
+                </a>
+            </div>
+
+            <button class="md:hidden text-tf-blue text-2xl">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
         </div>
     </nav>
 
@@ -183,23 +211,39 @@
             </div>
 
 
-            <div class="section-card p-8">
-                <div class="flex items-center gap-3 mb-6 border-b pb-4">
-                    <i class="fa-solid fa-user-pen text-tf-blue text-xl"></i>
-                    <h2 class="font-bold text-gray-800 uppercase tracking-wide">Your Details</h2>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input type="text" name="reporter_name" placeholder="Full Name"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
-                    <input type="text" name="reporter_contact" placeholder="Contact Number (Optional)"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+<div class="section-card p-8">
+    <div class="flex items-center gap-3 mb-4 border-b pb-4">
+        <i class="fa-solid fa-user-pen text-tf-blue text-xl"></i>
+        <h2 class="font-bold text-gray-800 uppercase tracking-wide">Your Details</h2>
+    </div>
 
-                </div>
-                <div class="mt-6">
-                    <input type="text" name="reporter_address" placeholder="Address"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
-                </div>
-            </div>
+    <!-- ✅ Info / Warning Box -->
+    <div class="flex items-start gap-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded-xl p-4 mb-6">
+        <i class="fa-solid fa-circle-exclamation mt-1"></i>
+        <p>
+            <span class="font-semibold">Important:</span>
+            Please enter a valid email address. This will be used for OTP verification to confirm your submission.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <input type="text" name="reporter_name" placeholder="Full Name"
+            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+
+        <input type="text" name="reporter_contact" placeholder="Contact Number"
+            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+
+        <input type="text" name="reporter_email" placeholder="Email Address"
+            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+
+        <textarea name="reporter_address" placeholder="Address (Optional)"
+            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none"
+            rows="3"></textarea>
+    </div>
+
+    <div class="mt-6">
+    </div>
+</div>
 
 
 
@@ -217,10 +261,6 @@
         </form>
     </main>
 
-    <footer class="bg-white border-t py-8 text-center">
-        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Official TrackForce Lipa Security
-            Portal &copy; 2026</p>
-    </footer>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const map = L.map('map').setView([13.9414, 121.1644], 14);

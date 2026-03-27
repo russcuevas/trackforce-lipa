@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrackForce - Lipa</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -50,70 +52,11 @@
 
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <header class="bg-tf-blue h-16 flex items-center justify-between px-6 shadow-lg z-20">
-        <div class="flex items-center gap-4">
-            <img src="{{ asset('images/logo.png') }}" alt="Trackforce Lipa Logo" class="h-10 w-auto object-contain">
-            <h3 class="text-white font-bold tracking-wider">TRACKFORCE <br> LIPA - PNP</h3>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="relative cursor-pointer">
-                <i class="fa-solid fa-bell text-white text-xl"></i>
-                <span
-                    class="absolute -top-2 -right-2 bg-tf-red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
-            </div>
-            <div class="flex items-center gap-3 border-l border-blue-800 pl-6 text-white">
-                <div class="text-right hidden md:block">
-                    <p class="text-sm font-medium">Investigator Alpha</p>
-                    <p class="text-[10px] opacity-75 uppercase">Badge #0421</p>
-                </div>
-                <div class="h-10 w-10 rounded-full bg-white flex items-center justify-center text-tf-blue font-bold">IA
-                </div>
-            </div>
-        </div>
-    </header>
+    @include('investigator.components.header')
 
     <div class="flex flex-1 overflow-hidden">
-        <aside class="bg-tf-blue w-20 lg:w-64 flex flex-col transition-all duration-300">
-            <nav class="flex-1 px-3 py-6 space-y-2">
-                <a href="#" class="flex items-center gap-4 p-3 rounded-lg nav-active group">
-                    <i class="fa-solid fa-chart-line text-tf-yellow group-hover:scale-110 transition-transform"></i>
-                    <span class="hidden lg:block font-medium">Dashboard</span>
-                </a>
 
-                <a href="#"
-                    class="flex items-center gap-4 p-3 text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all group">
-                    <i class="fa-solid fa-users group-hover:text-tf-yellow"></i>
-                    <span class="hidden lg:block">Accounts</span>
-                </a>
-
-                <a href="#"
-                    class="flex items-center gap-4 p-3 text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all group">
-                    <i class="fa-solid fa-file-signature group-hover:text-tf-yellow"></i>
-                    <span class="hidden lg:block">Documentations</span>
-                </a>
-
-
-
-                <a href="#"
-                    class="flex items-center gap-4 p-3 text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all group">
-                    <i class="fa-solid fa-list-check group-hover:text-tf-yellow"></i>
-                    <span class="hidden lg:block">Incident Reports</span>
-                </a>
-
-                <a href="#"
-                    class="flex items-center gap-4 p-3 text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all group">
-                    <i class="fa-solid fa-history group-hover:text-tf-yellow"></i>
-                    <span class="hidden lg:block">Audit Trail Logs</span>
-                </a>
-            </nav>
-            <div class="p-4 border-t border-white/10">
-                <button
-                    class="w-full bg-tf-red text-white py-2 rounded font-bold text-sm uppercase flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-power-off"></i>
-                    <span class="hidden lg:block">Logout</span>
-                </button>
-            </div>
-        </aside>
+        @include('investigator.components.left_sidebar')
 
         <main class="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50">
 
@@ -151,17 +94,10 @@
             <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 h-96">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-lg"><i class="fa-solid fa-map-pin text-tf-red mr-2"></i>Live Incident
-                            Map</h3>
+                        <h3 class="font-bold text-lg"><i class="fa-solid fa-map-pin text-tf-red mr-2"></i>Real Time Incident Map</h3>
                         <button class="text-xs bg-tf-blue text-white px-3 py-1 rounded">Expand Map</button>
                     </div>
-                    <div
-                        class="w-full h-72 bg-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden">
-                        <div
-                            class="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=1000')] bg-cover">
-                        </div>
-                        <i class="fa-solid fa-map-location-dot text-5xl text-gray-400 z-10"></i>
-                    </div>
+                    <div id="map" class="w-full h-72 rounded-lg z-10"></div>
                 </div>
 
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
@@ -302,6 +238,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const ageCtx = document.getElementById('ageChart').getContext('2d');
         new Chart(ageCtx, {
@@ -364,6 +301,35 @@
             }
         });
     </script>
+    <script>
+    // 1. Initialize the map centered on Lipa City
+    const map = L.map('map').setView([13.9419, 121.1644], 13);
+
+    // 2. Add the OpenStreetMap tiles (the actual map visuals)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 3. Sample Data (In a real app, you'd fetch this from your database)
+    const incidents = [
+        { id: "2026-0045", lat: 13.9410, lng: 121.1620, title: "Road Accident - Lipa Proper", status: "Pending" },
+        { id: "2026-0044", lat: 13.9550, lng: 121.1550, title: "Vehicle Violation - Sabang", status: "Investigating" }
+    ];
+
+    // 4. Add pins to the map
+    incidents.forEach(incident => {
+        const marker = L.marker([incident.lat, incident.lng]).addTo(map);
+        marker.bindPopup(`
+            <div class="text-sm">
+                <b class="text-tf-blue">${incident.id}</b><br>
+                ${incident.title}<br>
+                <span class="text-xs font-bold uppercase ${incident.status === 'Pending' ? 'text-red-500' : 'text-yellow-600'}">
+                    ${incident.status}
+                </span>
+            </div>
+        `);
+    });
+</script>
 </body>
 
 </html>
