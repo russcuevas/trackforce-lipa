@@ -92,11 +92,7 @@
                     <span class="hidden lg:block">Documentations</span>
                 </a>
 
-                <a href="#"
-                    class="flex items-center gap-4 p-3 text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all group">
-                    <i class="fa-solid fa-map-location-dot group-hover:text-tf-yellow"></i>
-                    <span class="hidden lg:block">Incident Map View</span>
-                </a>
+
 
                 <a href="#"
                     class="flex items-center gap-4 p-3 text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all group">

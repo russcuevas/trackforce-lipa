@@ -186,12 +186,12 @@
             <div class="section-card p-8">
                 <div class="flex items-center gap-3 mb-6 border-b pb-4">
                     <i class="fa-solid fa-user-pen text-tf-blue text-xl"></i>
-                    <h2 class="font-bold text-gray-800 uppercase tracking-wide">Reporter Details (Optional)</h2>
+                    <h2 class="font-bold text-gray-800 uppercase tracking-wide">Your Details</h2>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <input type="text" name="reporter_name" placeholder="Full Name"
                         class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
-                    <input type="text" name="reporter_contact" placeholder="Contact Number"
+                    <input type="text" name="reporter_contact" placeholder="Contact Number (Optional)"
                         class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
 
                 </div>

@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\auth\AuthController;
+use App\Http\Controllers\investigator\AccountController;
+use App\Http\Controllers\investigator\AuditLogsController;
 use App\Http\Controllers\investigator\DashboardController;
+use App\Http\Controllers\investigator\DocumentationController;
+use App\Http\Controllers\investigator\IncidentReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,6 +23,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// AUTH ROUTE
+Route::get('/login', [AuthController::class, 'LoginPage'])->name('auth.login.page');
 
 // INVESTIGATOR ROUTE
 Route::get('/investigator/dashboard', [DashboardController::class, 'DashboardPage'])->name('investigator.dashboard.page');
+Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');
+Route::get('/investigator/documentations', [DocumentationController::class, 'DocumentationPage'])->name('investigator.documentation.page');
+Route::get('/investigator/incidents/reports', [IncidentReportController::class, 'IncidentReportPage'])->name('investigator.incident.report.page');
+Route::get('/investigator/logs', [AuditLogsController::class, 'LogsPage'])->name('investigator.logs.page');
