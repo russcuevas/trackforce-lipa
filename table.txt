@@ -1,5 +1,6 @@
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    profile_image VARCHAR(100) NOT NULL,
     badge_number VARCHAR(20) UNIQUE, -- For Investigators
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -63,8 +64,8 @@ CREATE TABLE vehicles (
 CREATE TABLE incident_evidence (
     evidence_id INT AUTO_INCREMENT PRIMARY KEY,
     incident_id INT NOT NULL,
-    file_path VARCHAR(255) NOT NULL, -- Storage path for photos/videos
-    file_type VARCHAR(50),
+    file_path VARCHAR(255) NULL, -- Storage path for photos/videos
+    file_type VARCHAR(50) NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (incident_id) REFERENCES incidents(incident_id) ON DELETE CASCADE
 );

@@ -79,12 +79,14 @@
                                             class="bg-blue-100 text-tf-blue px-3 py-1 rounded-full text-xs font-bold">42
                                             Reports</span>
                                     </td>
-                                    <td class="py-4 px-4 text-center">
-                                        <button
-                                            class="bg-tf-blue hover:bg-blue-900 text-white px-4 py-1.5 rounded text-xs font-bold transition-all shadow-sm flex items-center gap-2 mx-auto">
-                                            <i class="fa-solid fa-eye text-[10px]"></i>
-                                            VIEW REPORTS
-                                        </button>
+                                    <td class="py-4 px-4">
+                                        <div class="flex justify-center">
+                                            <a href=""
+                                            class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
+                                                <i class="fa-solid fa-eye"></i>
+                                                <span class="uppercase tracking-wider">View Reports</span>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr class="hover:bg-gray-50/50 transition-colors">
@@ -98,12 +100,14 @@
                                             class="bg-blue-100 text-tf-blue px-3 py-1 rounded-full text-xs font-bold">28
                                             Reports</span>
                                     </td>
-                                    <td class="py-4 px-4 text-center">
-                                        <button
-                                            class="bg-tf-blue hover:bg-blue-900 text-white px-4 py-1.5 rounded text-xs font-bold transition-all shadow-sm flex items-center gap-2 mx-auto">
-                                            <i class="fa-solid fa-eye text-[10px]"></i>
-                                            VIEW REPORTS
-                                        </button>
+                                    <td class="py-4 px-4">
+                                        <div class="flex justify-center">
+                                            <a href=""
+                                            class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
+                                                <i class="fa-solid fa-eye"></i>
+                                                <span class="uppercase tracking-wider">View Reports</span>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>

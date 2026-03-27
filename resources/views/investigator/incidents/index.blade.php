@@ -7,9 +7,12 @@
     <title>TrackForce - Lipa</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
 
     <style>
         body {
@@ -61,11 +64,7 @@
                     <p class="text-sm text-gray-500">Manage, review, and update submitted incident cases.</p>
                 </div>
                 <div class="flex gap-2">
-                    <button
-                        class="bg-tf-blue hover:bg-blue-900 text-white px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-md">
-                        <i class="fa-solid fa-file-signature text-tf-yellow"></i>
-                        ADD INCIDENT REPORT
-                    </button>
+                    @include('investigator.incidents.modals.add_incident_modal')
                 </div>
             </div>
 
@@ -123,12 +122,14 @@
                                             class="bg-red-100 text-tf-red px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter">Pending
                                             Review</span>
                                     </td>
-                                    <td class="py-4 px-4 text-center">
-                                        <button
-                                            class="bg-tf-blue hover:bg-blue-900 text-white px-4 py-1.5 rounded text-xs font-bold transition-all shadow-sm flex items-center gap-2 mx-auto">
-                                            <i class="fa-solid fa-eye text-[10px]"></i>
-                                            VIEW CASE
-                                        </button>
+                                    <td class="py-4 px-4">
+                                        <div class="flex justify-center">
+                                            <a href="{{ route('investigator.incident.view.case.page') }}"
+                                            class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
+                                                <i class="fa-solid fa-eye"></i>
+                                                <span class="uppercase tracking-wider">View Case</span>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
 
@@ -148,12 +149,14 @@
                                             class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter">Under
                                             Investigation</span>
                                     </td>
-                                    <td class="py-4 px-4 text-center">
-                                        <button
-                                            class="bg-tf-blue hover:bg-blue-900 text-white px-4 py-1.5 rounded text-xs font-bold transition-all shadow-sm flex items-center gap-2 mx-auto">
-                                            <i class="fa-solid fa-eye text-[10px]"></i>
-                                            VIEW CASE
-                                        </button>
+                                    <td class="py-4 px-4">
+                                        <div class="flex justify-center">
+                                            <a href="{{ route('investigator.incident.view.case.page') }}"
+                                            class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
+                                                <i class="fa-solid fa-eye"></i>
+                                                <span class="uppercase tracking-wider">View Case</span>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -166,6 +169,7 @@
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         $(document).ready(function() {
             $('#reportsTable').DataTable({
@@ -175,6 +179,67 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search"
                 }
+            });
+        });
+    </script>
+    <script>
+        let map;
+        let marker;
+
+        // Wait for Alpine to open the modal before initializing the map
+        // because Leaflet needs the container to have a height/width to render
+        function initMap() {
+            if (map) return; // Prevent double initialization
+
+            map = L.map('map').setView([13.9414, 121.1644], 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            map.on('click', async function(e) {
+                const {
+                    lat,
+                    lng
+                } = e.latlng;
+
+                // Update Input Fields
+                document.getElementById('lat').value = lat.toFixed(8);
+                document.getElementById('lng').value = lng.toFixed(8);
+
+                // Update/Move Marker
+                if (marker) {
+                    marker.setLatLng([lat, lng]);
+                } else {
+                    marker = L.marker([lat, lng]).addTo(map);
+                }
+
+                // Reverse Geocoding (Address Lookup)
+                document.getElementById('location_name').value = "Detecting address...";
+                const address = await getAddress(lat, lng);
+                document.getElementById('location_name').value = address;
+            });
+        }
+
+        async function getAddress(lat, lng) {
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+                );
+                const data = await response.json();
+                // Simplify address to a cleaner format if possible
+                return data.display_name || "Unknown Location";
+            } catch (error) {
+                console.error("Error fetching address:", error);
+                return "Address not found";
+            }
+        }
+
+        // Alpine Listener: Trigger map init when 'openIncident' becomes true
+        document.addEventListener('alpine:init', () => {
+            Alpine.effect(() => {
+                // Note: Replace with the actual data path if your x-data is isolated
+                // This is a helper to watch the state
             });
         });
     </script>

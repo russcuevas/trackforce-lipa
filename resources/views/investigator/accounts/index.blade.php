@@ -7,11 +7,10 @@
     <title>TrackForce - Lipa</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -50,6 +49,12 @@
             transform: translateY(-3px);
         }
     </style>
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body class="flex flex-col h-screen overflow-hidden">
@@ -68,12 +73,11 @@
                     <h1 class="text-2xl font-black text-tf-blue uppercase tracking-tight">Account Management</h1>
                     <p class="text-sm text-gray-500">Manage investigator access.</p>
                 </div>
-                <button
-                    class="bg-tf-blue hover:bg-blue-900 text-white px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-md">
-                    <i class="fa-solid fa-user-plus text-tf-yellow"></i>
-                    ADD ACCOUNT
-                </button>
+                @include('investigator.accounts.modals.add_account_modal')
             </div>
+
+
+
 
             <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-6">
@@ -162,6 +166,20 @@
                 }
             });
         });
+    </script>
+
+    <script id="q9m2da">
+        function previewFile(event) {
+            const image = document.getElementById('previewImage');
+            const icon = document.getElementById('cameraIcon');
+            const file = event.target.files[0];
+
+            if (file) {
+                image.src = URL.createObjectURL(file);
+                image.classList.remove('hidden');
+                icon.classList.add('hidden');
+            }
+        }
     </script>
 </body>
 
