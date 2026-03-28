@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <style>
         #map {
             height: 400px;
@@ -28,10 +29,21 @@
             background-color: #f8fafc;
         }
 
-        .bg-tf-blue { background-color: #0B3D91; }
-        .bg-tf-red { background-color: #CE1126; }
-        .text-tf-blue { color: #0B3D91; }
-        .text-tf-red { color: #CE1126; }
+        .bg-tf-blue {
+            background-color: #0B3D91;
+        }
+
+        .bg-tf-red {
+            background-color: #CE1126;
+        }
+
+        .text-tf-blue {
+            color: #0B3D91;
+        }
+
+        .text-tf-red {
+            color: #CE1126;
+        }
 
         .section-card {
             background: white;
@@ -40,7 +52,7 @@
             border: 1px solid #e2e8f0;
         }
 
-        
+
         .nav-link {
             position: relative;
             transition: all 0.3s;
@@ -65,19 +77,24 @@
 
 <body>
 
-<nav class="bg-white border-b sticky top-0 z-50">
+    <nav class="bg-white border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-12 w-auto object-contain">
                 <div class="leading-none">
-                    <span class="font-black text-tf-blue tracking-tighter text-xl uppercase block">TRACKFORCE LIPA</span>
+                    <span class="font-black text-tf-blue tracking-tighter text-xl uppercase block">TRACKFORCE
+                        LIPA</span>
                 </div>
             </div>
 
             <div class="hidden md:flex items-center gap-8">
-                <a href="{{ route('home.page') }}" class="nav-link font-bold text-gray-500 hover:text-tf-blue text-sm uppercase tracking-wider">Home</a>
-                <a href="{{ route('track.case.page') }}" class="nav-link font-bold text-gray-500 hover:text-tf-blue text-sm uppercase tracking-wider">Track Case</a>
-                <a href="{{ route('report.page') }}" class="bg-tf-red text-white px-6 py-2.5 rounded-full font-black text-xs uppercase shadow-lg shadow-red-200 hover:bg-red-700 transition-all">
+                <a href="{{ route('home.page') }}"
+                    class="nav-link font-bold text-gray-500 hover:text-tf-blue text-sm uppercase tracking-wider">Home</a>
+                <a href="{{ route('track.case.page') }}"
+                    class="nav-link font-bold text-gray-500 hover:text-tf-blue text-sm uppercase tracking-wider">Track
+                    Case</a>
+                <a href="{{ route('report.page') }}"
+                    class="bg-tf-red text-white px-6 py-2.5 rounded-full font-black text-xs uppercase shadow-lg shadow-red-200 hover:bg-red-700 transition-all">
                     Report Incident
                 </a>
             </div>
@@ -97,44 +114,75 @@
     </header>
 
     <main class="max-w-5xl mx-auto px-6 -mt-8 mb-20">
-        <form action="/submit-report" method="POST" enctype="multipart/form-data" class="space-y-8">
-
+        <form id="reportForm" action="/submit-report" method="POST" enctype="multipart/form-data" class="space-y-8">
+            @csrf
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="section-card p-8">
+                <div class="section-card p-8 mt-5">
                     <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-camera"></i> Evidence
                     </h3>
                     <div
                         class="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center hover:bg-gray-50 transition cursor-pointer">
-                        <input type="file" name="evidence[]" multiple class="hidden" id="fileUpload">
+                        <input type="file" name="evidence[]" multiple accept="image/*,video/*" class="hidden"
+                            id="fileUpload">
                         <label for="fileUpload" class="cursor-pointer">
                             <i class="fa-solid fa-cloud-arrow-up text-3xl text-tf-blue mb-2"></i>
                             <p class="text-xs font-bold text-gray-500 uppercase">Upload Photos or Video</p>
                             <p class="text-[10px] text-gray-400 mt-1">Files will be saved in the system</p>
                         </label>
+                        <div class="text-red-500 text-xs mt-1 hidden" id="error-evidence"></div>
+                    </div>
+
+                    <div id="evidencePreview" class="mt-4 hidden">
+                        <p class="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-3">Selected Evidence
+                        </p>
+                        <p class="text-[10px] text-gray-400 mb-2">Tap any preview to open full view.</p>
+                        <div id="evidencePreviewGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                     </div>
                 </div>
 
-                <div class="section-card p-8">
+                <div class="section-card p-8 mt-5">
                     <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-car"></i> Vehicle Involved
                     </h3>
-                    <div class="space-y-4">
-                        <select name="vehicle_type"
-                            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
-                            <option value="Motorcycle">Motorcycle</option>
-                            <option value="Private Car">Private Car</option>
-                            <option value="PUJ">PUJ (Jeepney)</option>
-                            <option value="Truck">Truck</option>
-                            <option value="Bicycle">Bicycle</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <input type="text" name="plate_number" placeholder="Plate Number (If visible)"
-                            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+
+                    <div id="vehiclesContainer" class="space-y-4">
+                        <!-- Single vehicle template -->
+                        <div
+                            class="vehicle-entry relative grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border border-gray-200 rounded-2xl bg-gray-50/70">
+                            <button type="button"
+                                class="removeVehicle absolute -top-2 -right-2 md:top-3 md:right-3 h-8 w-8 rounded-full bg-red-500 text-white flex items-center justify-center shadow hover:bg-red-600 transition-all"
+                                aria-label="Remove vehicle" title="Remove vehicle">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+
+                            <select name="vehicle_type[]"
+                                class="vehicle_type w-full bg-white border border-gray-200 rounded-xl p-3 text-sm outline-none">
+                                <option value="Motorcycle">Motorcycle</option>
+                                <option value="Private Car">Private Car</option>
+                                <option value="PUJ">PUJ (Jeepney)</option>
+                                <option value="Truck">Truck</option>
+                                <option value="Bicycle">Bicycle</option>
+                                <option value="Other">Other</option>
+                            </select>
+
+                            <input type="text" name="plate_number[]" placeholder="Plate Number (If visible)"
+                                class="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm outline-none">
+
+                            <input type="text" name="vehicle_color[]" placeholder="Vehicle Color"
+                                class="vehicle_color w-full bg-white border border-gray-200 rounded-xl p-3 text-sm outline-none">
+
+                            <input type="text" name="vehicle_type_other[]" placeholder="Specify Other Vehicle"
+                                class="vehicle_type_other w-full bg-white border border-gray-200 rounded-xl p-3 text-sm outline-none hidden md:col-span-2">
+                        </div>
                     </div>
+
+                    <button type="button" id="addVehicleBtn"
+                        class="mt-4 ml-auto h-11 w-11 bg-tf-blue text-white rounded-xl text-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center"
+                        aria-label="Add vehicle" title="Add vehicle">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
                 </div>
-
-
             </div>
 
             <div class="section-card p-8">
@@ -144,7 +192,8 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Tap/Click on the map to pin
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Tap/Click on the map to
+                        pin
                         the exact location</label>
                     <div id="map" class="border-2 border-gray-100 shadow-inner"></div>
                 </div>
@@ -170,7 +219,7 @@
                         <div class="relative">
                             <i class="fa-solid fa-location-dot absolute left-4 top-4 text-tf-red text-xs"></i>
 
-                            <textarea id="location_name" name="location_name" rows="3" required
+                            <textarea id="location_name" name="location_name" rows="3" required readonly
                                 class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-tf-blue outline-none resize-none"
                                 placeholder="Click on the map to get address..."></textarea>
                         </div>
@@ -180,13 +229,17 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-gray-50">
                     <div>
                         <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Incident Type</label>
-                        <select name="incident_type"
+                        <select id="incident_type" name="incident_type"
                             class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
                             <option value="Accident">Accident</option>
                             <option value="Violation">Violation</option>
                             <option value="Public Disturbance">Public Disturbance</option>
                             <option value="Other">Other</option>
                         </select>
+
+                        <input type="text" id="incident_type_other" name="incident_type_other"
+                            placeholder="Specify Incident Type"
+                            class="hidden mt-3 w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Road Condition</label>
@@ -211,39 +264,40 @@
             </div>
 
 
-<div class="section-card p-8">
-    <div class="flex items-center gap-3 mb-4 border-b pb-4">
-        <i class="fa-solid fa-user-pen text-tf-blue text-xl"></i>
-        <h2 class="font-bold text-gray-800 uppercase tracking-wide">Your Details</h2>
-    </div>
+            <div class="section-card p-8">
+                <div class="flex items-center gap-3 mb-4 border-b pb-4">
+                    <i class="fa-solid fa-user-pen text-tf-blue text-xl"></i>
+                    <h2 class="font-bold text-gray-800 uppercase tracking-wide">Your Details</h2>
+                </div>
 
-    <!-- ✅ Info / Warning Box -->
-    <div class="flex items-start gap-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded-xl p-4 mb-6">
-        <i class="fa-solid fa-circle-exclamation mt-1"></i>
-        <p>
-            <span class="font-semibold">Important:</span>
-            Please enter a valid email address. This will be used for OTP verification to confirm your submission.
-        </p>
-    </div>
+                <!-- ✅ Info / Warning Box -->
+                <div
+                    class="flex items-start gap-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded-xl p-4 mb-6">
+                    <i class="fa-solid fa-circle-exclamation mt-1"></i>
+                    <p>
+                        <span class="font-semibold">Important:</span>
+                        Please enter a valid email address. This will be used for OTP verification to confirm your
+                        submission.
+                    </p>
+                </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <input type="text" name="reporter_name" placeholder="Full Name"
-            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <input type="text" name="reporter_name" placeholder="Full Name"
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
 
-        <input type="text" name="reporter_contact" placeholder="Contact Number"
-            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+                    <input type="text" name="reporter_contact" placeholder="Contact Number"
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
 
-        <input type="text" name="reporter_email" placeholder="Email Address"
-            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+                    <input required type="text" name="reporter_email" placeholder="Email Address"
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
 
-        <textarea name="reporter_address" placeholder="Address (Optional)"
-            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none"
-            rows="3"></textarea>
-    </div>
+                    <textarea name="reporter_address" placeholder="Address (Optional)"
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none" rows="3"></textarea>
+                </div>
 
-    <div class="mt-6">
-    </div>
-</div>
+                <div class="mt-6">
+                </div>
+            </div>
 
 
 
@@ -262,6 +316,366 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileUpload = document.getElementById('fileUpload');
+            const evidencePreview = document.getElementById('evidencePreview');
+            const evidencePreviewGrid = document.getElementById('evidencePreviewGrid');
+            let selectedEvidenceFiles = [];
+            let activePreviewUrls = [];
+
+            function syncEvidenceInputFiles() {
+                const dataTransfer = new DataTransfer();
+                selectedEvidenceFiles.forEach(file => dataTransfer.items.add(file));
+                fileUpload.files = dataTransfer.files;
+            }
+
+            function clearActivePreviewUrls() {
+                activePreviewUrls.forEach(url => URL.revokeObjectURL(url));
+                activePreviewUrls = [];
+            }
+
+            function renderEvidencePreview() {
+                clearActivePreviewUrls();
+                evidencePreviewGrid.innerHTML = '';
+
+                if (!selectedEvidenceFiles.length) {
+                    evidencePreview.classList.add('hidden');
+                    return;
+                }
+
+                evidencePreview.classList.remove('hidden');
+
+                selectedEvidenceFiles.forEach((file, index) => {
+                    const objectUrl = URL.createObjectURL(file);
+                    activePreviewUrls.push(objectUrl);
+
+                    const card = document.createElement('div');
+                    card.className =
+                        'relative border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm';
+
+                    const openLink = document.createElement('a');
+                    openLink.href = objectUrl;
+                    openLink.target = '_blank';
+                    openLink.rel = 'noopener noreferrer';
+                    openLink.title = `Open ${file.name}`;
+                    openLink.className = 'block';
+
+                    if (file.type.startsWith('image/')) {
+                        const image = document.createElement('img');
+                        image.src = objectUrl;
+                        image.alt = file.name;
+                        image.className = 'h-24 w-full object-cover';
+                        openLink.appendChild(image);
+                    } else if (file.type.startsWith('video/')) {
+                        const video = document.createElement('video');
+                        video.src = objectUrl;
+                        video.className = 'h-24 w-full object-cover bg-black';
+                        video.muted = true;
+                        video.playsInline = true;
+                        video.preload = 'metadata';
+                        openLink.appendChild(video);
+                    } else {
+                        const fileBox = document.createElement('div');
+                        fileBox.className =
+                            'h-24 w-full flex items-center justify-center text-gray-500 bg-gray-50 text-xs font-semibold';
+                        fileBox.textContent = 'FILE';
+                        openLink.appendChild(fileBox);
+                    }
+
+                    const fileName = document.createElement('p');
+                    fileName.className = 'text-[10px] text-gray-600 px-2 py-2 truncate';
+                    fileName.textContent = file.name;
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className =
+                        'absolute top-1 right-1 h-6 w-6 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center hover:bg-red-600 transition-all';
+                    removeBtn.setAttribute('aria-label', `Remove ${file.name}`);
+                    removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+
+                    removeBtn.addEventListener('click', () => {
+                        selectedEvidenceFiles.splice(index, 1);
+                        syncEvidenceInputFiles();
+                        renderEvidencePreview();
+                    });
+
+                    card.appendChild(openLink);
+                    card.appendChild(fileName);
+                    card.appendChild(removeBtn);
+                    evidencePreviewGrid.appendChild(card);
+                });
+            }
+
+            fileUpload.addEventListener('change', function() {
+                const incomingFiles = Array.from(fileUpload.files || []);
+                if (!incomingFiles.length) {
+                    syncEvidenceInputFiles();
+                    return;
+                }
+
+                selectedEvidenceFiles = selectedEvidenceFiles.concat(incomingFiles);
+                syncEvidenceInputFiles();
+                renderEvidencePreview();
+            });
+
+            window.clearEvidencePreview = function() {
+                selectedEvidenceFiles = [];
+                syncEvidenceInputFiles();
+                renderEvidencePreview();
+            };
+
+            function toggleOtherField(selectEl, inputEl) {
+                selectEl.addEventListener('change', () => {
+                    if (selectEl.value === 'Other') {
+                        inputEl.classList.remove('hidden');
+                        inputEl.required = true;
+                    } else {
+                        inputEl.classList.add('hidden');
+                        inputEl.required = false;
+                        inputEl.value = '';
+                    }
+                });
+            }
+
+            const incidentTypeSelect = document.getElementById('incident_type');
+            const incidentTypeOtherInput = document.getElementById('incident_type_other');
+
+            function syncIncidentTypeOther() {
+                if (!incidentTypeSelect || !incidentTypeOtherInput) return;
+
+                if (incidentTypeSelect.value === 'Other') {
+                    incidentTypeOtherInput.classList.remove('hidden');
+                    incidentTypeOtherInput.required = true;
+                } else {
+                    incidentTypeOtherInput.classList.add('hidden');
+                    incidentTypeOtherInput.required = false;
+                    incidentTypeOtherInput.value = '';
+                }
+            }
+
+            if (incidentTypeSelect && incidentTypeOtherInput) {
+                incidentTypeSelect.addEventListener('change', syncIncidentTypeOther);
+                syncIncidentTypeOther();
+            }
+
+            const vehiclesContainer = document.getElementById('vehiclesContainer');
+            const addVehicleBtn = document.getElementById('addVehicleBtn');
+
+            function updateRemoveButtons() {
+                const entries = vehiclesContainer.querySelectorAll('.vehicle-entry');
+                const shouldHideRemove = entries.length <= 1;
+
+                entries.forEach(entry => {
+                    const removeBtn = entry.querySelector('.removeVehicle');
+                    if (!removeBtn) return;
+
+                    removeBtn.classList.toggle('hidden', shouldHideRemove);
+                });
+            }
+
+            function initializeVehicleEntry(entry) {
+                toggleOtherField(entry.querySelector('.vehicle_type'), entry.querySelector('.vehicle_type_other'));
+
+                // Remove button
+                entry.querySelector('.removeVehicle').addEventListener('click', () => {
+                    entry.remove();
+                    updateRemoveButtons();
+                });
+            }
+
+            // Initialize existing entries
+            vehiclesContainer.querySelectorAll('.vehicle-entry').forEach(initializeVehicleEntry);
+            updateRemoveButtons();
+
+            // Add new vehicle entry
+            addVehicleBtn.addEventListener('click', () => {
+                const template = vehiclesContainer.querySelector('.vehicle-entry');
+                const clone = template.cloneNode(true);
+
+                // Reset fields
+                clone.querySelectorAll('select, input').forEach(input => input.value = '');
+                clone.querySelector('.vehicle_type').value = 'Motorcycle';
+                clone.querySelector('.vehicle_type_other').classList.add('hidden');
+                clone.querySelector('.vehicle_type_other').required = false;
+
+                initializeVehicleEntry(clone);
+
+                vehiclesContainer.appendChild(clone);
+                updateRemoveButtons();
+            });
+
+            window.resetVehicleEntries = function() {
+                const entries = vehiclesContainer.querySelectorAll('.vehicle-entry');
+
+                entries.forEach((entry, index) => {
+                    if (index > 0) {
+                        entry.remove();
+                    }
+                });
+
+                const baseEntry = vehiclesContainer.querySelector('.vehicle-entry');
+                if (!baseEntry) return;
+
+                baseEntry.querySelectorAll('select, input').forEach(input => input.value = '');
+                baseEntry.querySelector('.vehicle_type').value = 'Motorcycle';
+                baseEntry.querySelector('.vehicle_type_other').classList.add('hidden');
+                baseEntry.querySelector('.vehicle_type_other').required = false;
+
+                updateRemoveButtons();
+            };
+        });
+    </script>
+    <script>
+        const notyf = new Notyf({
+            duration: 4000,
+            position: {
+                x: 'right',
+                y: 'top'
+            },
+            dismissible: true,
+            types: [{
+                    type: 'success',
+                    background: '#198754',
+                    icon: {
+                        // Changed from bi bi-check-circle-fill
+                        className: 'fa-solid fa-circle-check',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                },
+                {
+                    type: 'error',
+                    background: '#dc3545',
+                    icon: {
+                        // Changed from bi bi-exclamation-triangle-fill
+                        className: 'fa-solid fa-triangle-exclamation',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                }
+            ]
+        });
+
+        @if (session('success'))
+            notyf.open({
+                type: 'success',
+                message: @json(session('success'))
+            });
+        @endif
+
+        @if ($errors->any())
+            @foreach ($errors->all() as $error)
+                notyf.open({
+                    type: 'error',
+                    message: @json($error)
+                });
+            @endforeach
+        @endif
+    </script>
+    <script>
+        document.getElementById('reportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = e.target;
+
+            // Keep native required/type validation before AJAX submit.
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Hide previous file errors
+            const fileErrorEl = document.getElementById('error-evidence');
+            fileErrorEl.textContent = '';
+            fileErrorEl.classList.add('hidden');
+            const formData = new FormData(form);
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.status === 422) {
+                    if (data.errors) {
+                        const allErrors = Object.entries(data.errors);
+
+                        for (const [field, messages] of allErrors) {
+                            if (messages && messages.length) {
+                                notyf.open({
+                                    type: 'error',
+                                    message: messages[0]
+                                });
+                            }
+
+                            // evidence validation commonly comes as evidence.0, evidence.1, etc.
+                            if ((field === 'evidence' || field.startsWith('evidence.')) && messages && messages
+                                .length) {
+                                fileErrorEl.textContent = messages[0];
+                                fileErrorEl.classList.remove('hidden');
+                            }
+                        }
+                    }
+                } else if (response.status === 200) {
+                    notyf.open({
+                        type: 'success',
+                        message: `Report submitted successfully. Reference: ${data.report_number}`
+                    });
+
+                    form.reset();
+                    if (window.clearEvidencePreview) {
+                        window.clearEvidencePreview();
+                    }
+                    if (window.resetVehicleEntries) {
+                        window.resetVehicleEntries();
+                    }
+
+                    const incidentTypeSelect = document.getElementById('incident_type');
+                    const incidentTypeOtherInput = document.getElementById('incident_type_other');
+                    if (incidentTypeSelect && incidentTypeOtherInput) {
+                        incidentTypeOtherInput.classList.add('hidden');
+                        incidentTypeOtherInput.required = false;
+                        incidentTypeOtherInput.value = '';
+                    }
+
+                    if (marker) {
+                        map.removeLayer(marker);
+                        marker = null;
+                    }
+
+                    document.getElementById('lat').value = '';
+                    document.getElementById('lng').value = '';
+                    document.getElementById('location_name').value = '';
+                } else {
+                    notyf.open({
+                        type: 'error',
+                        message: 'Something went wrong while submitting the report.'
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                notyf.open({
+                    type: 'error',
+                    message: 'An unexpected network error occurred.'
+                });
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'SUBMIT TO LIPA PNP';
+            }
+        });
+    </script>
     <script>
         const map = L.map('map').setView([13.9414, 121.1644], 14);
 

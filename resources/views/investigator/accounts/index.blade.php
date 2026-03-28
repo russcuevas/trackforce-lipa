@@ -94,7 +94,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                @forelse ($investigators as $investigator)
+                                @foreach ($investigators as $investigator)
                                     @php
                                         $initials = collect(explode(' ', trim($investigator->full_name)))
                                             ->filter()
@@ -148,12 +148,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="py-8 px-4 text-center text-gray-400 font-semibold">No
-                                            investigator accounts yet.</td>
-                                    </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

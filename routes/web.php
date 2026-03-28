@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'HomePage'])->name('home.page');
 Route::get('/report', [ReportController::class, 'ReportPage'])->name('report.page');
+Route::post('/submit-report', [ReportController::class, 'CreateReportPage'])->name('report.submit');
 Route::get('/track-case', [TrackCaseController::class, 'TrackCasePage'])->name('track.case.page');
 
 
