@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -93,58 +94,66 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4 font-bold text-gray-400">#0421</td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="h-8 w-8 rounded-full bg-blue-100 text-tf-blue flex items-center justify-center font-bold text-xs">
-                                                VA</div>
-                                            <span class="font-medium text-gray-700">Vincent Alpha</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <span
-                                            class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-black uppercase">Active</span>
-                                    </td>
-                                    <td class="py-4 px-4 text-gray-500">Oct 12, 2025</td>
-                                    <td class="py-4 px-4 text-center">
-                                        <div class="flex justify-center gap-2">
-                                            <button
-                                                class="p-2 hover:bg-blue-50 text-blue-600 rounded-md transition-colors"><i
-                                                    class="fa-solid fa-pen-to-square"></i></button>
-                                            <button
-                                                class="p-2 hover:bg-red-50 text-tf-red rounded-md transition-colors"><i
-                                                    class="fa-solid fa-trash-can"></i></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4 font-bold text-gray-400">#0552</td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="h-8 w-8 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center font-bold text-xs">
-                                                RC</div>
-                                            <span class="font-medium text-gray-700">Russel Cuevas</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <span
-                                            class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-black uppercase">Active</span>
-                                    </td>
-                                    <td class="py-4 px-4 text-gray-500">Jan 05, 2026</td>
-                                    <td class="py-4 px-4 text-center">
-                                        <div class="flex justify-center gap-2">
-                                            <button
-                                                class="p-2 hover:bg-blue-50 text-blue-600 rounded-md transition-colors"><i
-                                                    class="fa-solid fa-pen-to-square"></i></button>
-                                            <button
-                                                class="p-2 hover:bg-red-50 text-tf-red rounded-md transition-colors"><i
-                                                    class="fa-solid fa-trash-can"></i></button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                @forelse ($investigators as $investigator)
+                                    @php
+                                        $initials = collect(explode(' ', trim($investigator->full_name)))
+                                            ->filter()
+                                            ->map(fn($part) => strtoupper(substr($part, 0, 1)))
+                                            ->take(2)
+                                            ->implode('');
+
+                                        $statusClasses = match ($investigator->status) {
+                                            'inactive' => 'bg-slate-200 text-slate-700',
+                                            'suspended' => 'bg-red-100 text-red-700',
+                                            default => 'bg-green-100 text-green-700',
+                                        };
+                                    @endphp
+                                    <tr id="investigator-row-{{ $investigator->id }}"
+                                        class="hover:bg-gray-50/50 transition-colors">
+                                        <td id="investigator-badge-{{ $investigator->id }}"
+                                            class="py-4 px-4 font-bold text-gray-400">#{{ $investigator->badge_number }}
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-3">
+                                                @if ($investigator->profile_image)
+                                                    <img id="investigator-image-{{ $investigator->id }}"
+                                                        src="{{ asset('storage/' . $investigator->profile_image) }}"
+                                                        alt="{{ $investigator->full_name }}"
+                                                        class="h-8 w-8 rounded-full object-cover border border-slate-200">
+                                                @else
+                                                    <div id="investigator-initials-{{ $investigator->id }}"
+                                                        class="h-8 w-8 rounded-full bg-blue-100 text-tf-blue flex items-center justify-center font-bold text-xs">
+                                                        {{ $initials ?: 'NA' }}</div>
+                                                @endif
+                                                <span id="investigator-name-{{ $investigator->id }}"
+                                                    class="font-medium text-gray-700">{{ $investigator->full_name }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span id="investigator-status-{{ $investigator->id }}"
+                                                class="{{ $statusClasses }} px-2 py-1 rounded text-[10px] font-black uppercase">{{ $investigator->status }}</span>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-500">
+                                            {{ $investigator->created_at->format('M d, Y') }}</td>
+                                        <td class="py-4 px-4 text-center">
+                                            <div class="flex justify-center gap-2">
+                                                @include(
+                                                    'investigator.accounts.modals.edit_account_modal',
+                                                    ['investigator' => $investigator]
+                                                )
+                                                @include(
+                                                    'investigator.accounts.modals.delete_account_modal',
+                                                    ['investigator' => $investigator]
+                                                )
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="py-8 px-4 text-center text-gray-400 font-semibold">No
+                                            investigator accounts yet.</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -155,6 +164,54 @@
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script>
+        const notyf = new Notyf({
+            duration: 4000,
+            position: {
+                x: 'right',
+                y: 'top'
+            },
+            dismissible: true,
+            types: [{
+                    type: 'success',
+                    background: '#198754',
+                    icon: {
+                        // Changed from bi bi-check-circle-fill
+                        className: 'fa-solid fa-circle-check',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                },
+                {
+                    type: 'error',
+                    background: '#dc3545',
+                    icon: {
+                        // Changed from bi bi-exclamation-triangle-fill
+                        className: 'fa-solid fa-triangle-exclamation',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                }
+            ]
+        });
+
+        @if (session('success'))
+            notyf.open({
+                type: 'success',
+                message: @json(session('success'))
+            });
+        @endif
+
+        @if ($errors->any())
+            @foreach ($errors->all() as $error)
+                notyf.open({
+                    type: 'error',
+                    message: @json($error)
+                });
+            @endforeach
+        @endif
+    </script>
     <script>
         $(document).ready(function() {
             $('#accountsTable').DataTable({
@@ -163,6 +220,197 @@
                 language: {
                     search: "_INPUT_",
                     searchPlaceholder: "Search records..."
+                }
+            });
+
+            $(document).on('submit', 'form[id^="editAccountForm-"]', async function(event) {
+                event.preventDefault();
+
+                const form = event.currentTarget;
+                const submitButton = form.querySelector('.editAccountSubmitButton');
+                const formId = form.id.replace('editAccountForm-', '');
+
+                form.querySelectorAll('[id^="error_edit_"]').forEach((field) => {
+                    field.textContent = '';
+                    field.classList.add('hidden');
+                });
+
+                form.querySelectorAll('input, select').forEach((input) => {
+                    input.classList.remove('border-red-500', 'ring-4', 'ring-red-500/10');
+                });
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span>UPDATING...</span>';
+                }
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new FormData(form)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.status === 422 && result.errors) {
+                        Object.keys(result.errors).forEach((key) => {
+                            const errorElement = document.getElementById(
+                                `error_edit_${key}_${formId}`);
+                            const input = form.querySelector(`[name="${key}"]`);
+
+                            if (errorElement) {
+                                errorElement.textContent = result.errors[key][0];
+                                errorElement.classList.remove('hidden');
+                            }
+
+                            if (input) {
+                                input.classList.add('border-red-500', 'ring-4',
+                                    'ring-red-500/10');
+                            }
+                        });
+
+                        if (typeof notyf !== 'undefined') {
+                            notyf.error('Please check the highlighted fields.');
+                        }
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(result.message || 'Failed to update account.');
+                    }
+
+                    if (typeof notyf !== 'undefined') {
+                        notyf.success(result.message || 'Investigator account updated successfully!');
+                    }
+
+                    const badgeInput = form.querySelector('[name="badge_number"]');
+                    const fullNameInput = form.querySelector('[name="full_name"]');
+                    const statusInput = form.querySelector('[name="status"]');
+
+                    const badgeCell = document.getElementById(`investigator-badge-${formId}`);
+                    const nameCell = document.getElementById(`investigator-name-${formId}`);
+                    const initialsCell = document.getElementById(`investigator-initials-${formId}`);
+                    const statusCell = document.getElementById(`investigator-status-${formId}`);
+                    const imageElement = document.getElementById(`investigator-image-${formId}`);
+                    const initialsElement = document.getElementById(`investigator-initials-${formId}`);
+                    if (result.profile_image_url) {
+                        if (imageElement) {
+                            // Option A: Update existing image with a cache-buster (t parameter)
+                            imageElement.src = result.profile_image_url + '?t=' + new Date().getTime();
+                        } else if (initialsElement) {
+                            // Option B: If they had initials before, replace that div with an img tag
+                            const newImg = document.createElement('img');
+                            newImg.id = `investigator-image-${formId}`;
+                            newImg.src = result.profile_image_url;
+                            newImg.alt = nameCell ? nameCell.textContent : 'Profile';
+                            newImg.className =
+                                "h-8 w-8 rounded-full object-cover border border-slate-200";
+
+                            // Replace the initials div with the new image
+                            initialsElement.parentNode.replaceChild(newImg, initialsElement);
+                        }
+                    }
+
+                    if (badgeCell && badgeInput) {
+                        badgeCell.textContent = `#${badgeInput.value}`;
+                    }
+
+                    if (nameCell && fullNameInput) {
+                        nameCell.textContent = fullNameInput.value;
+                    }
+
+                    if (initialsCell && fullNameInput) {
+                        const initials = fullNameInput.value
+                            .trim()
+                            .split(/\s+/)
+                            .filter(Boolean)
+                            .slice(0, 2)
+                            .map((part) => part.charAt(0).toUpperCase())
+                            .join('');
+                        initialsCell.textContent = initials || 'NA';
+                    }
+
+                    if (statusCell && statusInput) {
+                        statusCell.textContent = statusInput.value;
+                        statusCell.classList.remove('bg-green-100', 'text-green-700', 'bg-slate-200',
+                            'text-slate-700', 'bg-red-100', 'text-red-700');
+
+                        if (statusInput.value === 'inactive') {
+                            statusCell.classList.add('bg-slate-200', 'text-slate-700');
+                        } else if (statusInput.value === 'suspended') {
+                            statusCell.classList.add('bg-red-100', 'text-red-700');
+                        } else {
+                            statusCell.classList.add('bg-green-100', 'text-green-700');
+                        }
+                    }
+
+                    window.dispatchEvent(new CustomEvent(`edit-account-created-${formId}`));
+                } catch (error) {
+                    if (typeof notyf !== 'undefined') {
+                        notyf.error(error.message ||
+                            'Something went wrong while updating the account.');
+                    }
+                } finally {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML =
+                            '<span>UPDATE</span><i class="fa-solid fa-floppy-disk hidden sm:inline"></i>';
+                    }
+                }
+            });
+
+            $(document).on('submit', 'form[id^="deleteAccountForm-"]', async function(event) {
+                event.preventDefault();
+
+                const form = event.currentTarget;
+                const submitButton = form.querySelector('.deleteAccountSubmitButton');
+                const formId = form.id.replace('deleteAccountForm-', '');
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'DELETING...';
+                }
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new FormData(form)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.message || 'Failed to delete account.');
+                    }
+
+                    if (typeof notyf !== 'undefined') {
+                        notyf.success(result.message || 'Investigator account deleted successfully!');
+                    }
+
+                    window.dispatchEvent(new CustomEvent(`delete-account-created-${formId}`));
+
+                    const row = document.getElementById(`investigator-row-${formId}`);
+                    if (row) {
+                        row.remove();
+                    }
+                } catch (error) {
+                    if (typeof notyf !== 'undefined') {
+                        notyf.error(error.message ||
+                            'Something went wrong while deleting the account.');
+                    }
+                } finally {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'DELETE';
+                    }
                 }
             });
         });

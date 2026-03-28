@@ -33,12 +33,21 @@ Route::get('/login', [AuthController::class, 'LoginPage'])->name('auth.login.pag
 
 // INVESTIGATOR ROUTE
 Route::get('/investigator/dashboard', [DashboardController::class, 'DashboardPage'])->name('investigator.dashboard.page');
+
+
+// INVESTIGATOR ACCOUNT ROUTE
 Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');
+Route::post('/investigator/accounts/create', [AccountController::class, 'CreateAccountRequest'])->name('investigator.account.create');
+Route::put('/investigator/accounts/{investigator}/update', [AccountController::class, 'UpdateAccountRequest'])->name('investigator.account.update');
+Route::delete('/investigator/accounts/{investigator}/delete', [AccountController::class, 'DeleteAccountRequest'])->name('investigator.account.delete');
+
+
 Route::get('/investigator/documentations', [DocumentationController::class, 'DocumentationPage'])->name('investigator.documentation.page');
 
-// INCIDENTS ROUTE
+// INVESTIGATOR INCIDENTS ROUTE
 Route::get('/investigator/incidents/reports', [IncidentReportController::class, 'IncidentReportPage'])->name('investigator.incident.report.page');
 Route::get('/investigator/incidents/case', [IncidentReportController::class, 'IncidentCaseViewPage'])->name('investigator.incident.view.case.page');
 Route::get('/investigator/incidents/print/case', [IncidentReportController::class, 'IncidentPrintCaseRequest'])->name('investigator.incident.print.case.page');
+
 
 Route::get('/investigator/logs', [AuditLogsController::class, 'LogsPage'])->name('investigator.logs.page');

@@ -107,8 +107,9 @@
                     </a>
                 </div>
 
-                <button type="submit"
+                <button type="button" onclick="window.location.href='investigator/dashboard';"
                     class="w-full bg-[#0B3D91] hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all duration-300 shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] text-xs mt-2 uppercase tracking-widest">
+
                     <span>Login</span>
                     <i class="fa-solid fa-arrow-right-to-bracket text-[#FFD700] text-[10px]"></i>
                 </button>
