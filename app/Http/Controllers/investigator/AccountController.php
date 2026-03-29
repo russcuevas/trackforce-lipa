@@ -43,11 +43,16 @@ class AccountController extends Controller
             $validated['profile_image'] = $path;
         }
 
-        Investigator::create($validated);
+        $investigator = Investigator::create($validated);
+        $investigator->refresh();
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
-                'message' => 'Investigator account created successfully!'
+                'message' => 'Investigator account created successfully!',
+                'investigator_id' => $investigator->id,
+                'row_html' => view('investigator.accounts.partials.investigator_row', [
+                    'investigator' => $investigator,
+                ])->render(),
             ], 201);
         }
 

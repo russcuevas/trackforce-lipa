@@ -186,6 +186,11 @@
 
             event.preventDefault();
 
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
             const submitButton = form.querySelector('#addAccountSubmitButton');
             const previewImage = document.getElementById('previewImage');
 
@@ -242,7 +247,9 @@
                     if (previewImage) {
                         previewImage.src = defaultPreviewImage;
                     }
-                    window.dispatchEvent(new CustomEvent('account-created'));
+                    window.dispatchEvent(new CustomEvent('account-created', {
+                        detail: result
+                    }));
                 } else {
                     throw new Error(result.message || 'Server Error');
                 }
