@@ -352,6 +352,62 @@
             </div>
 
         </form>
+
+        <div id="otpModal" class="fixed inset-0 z-[70] hidden">
+            <div id="otpModalBackdrop" class="absolute inset-0 bg-black/50"></div>
+
+            <div class="relative h-full w-full overflow-y-auto">
+                <div class="min-h-full flex items-center justify-center p-4">
+                    <div class="w-full max-w-md bg-white rounded-2xl border border-gray-200 shadow-2xl p-6">
+                        <div class="flex items-start justify-between gap-4 mb-4">
+                            <div>
+                                <h3 class="text-lg font-black text-gray-800">Verify Your Report</h3>
+                                <p class="text-xs text-gray-500 mt-1">Enter the OTP sent to your email.</p>
+                            </div>
+                            <button type="button" id="closeOtpModalBtn"
+                                class="h-8 w-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                                aria-label="Close OTP modal">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <form id="otpVerifyForm" class="space-y-3" action="{{ route('report.verify.submit') }}"
+                            method="POST">
+                            @csrf
+                            <div>
+                                <label for="otp_report_number"
+                                    class="block text-[10px] font-black text-gray-400 uppercase mb-2">Report
+                                    Number</label>
+                                <input id="otp_report_number" name="report_number" type="text" required
+                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+                            </div>
+
+                            <div>
+                                <label for="otp_reporter_email"
+                                    class="block text-[10px] font-black text-gray-400 uppercase mb-2">Reporter
+                                    Email</label>
+                                <input id="otp_reporter_email" name="reporter_email" type="email" required
+                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm outline-none">
+                            </div>
+
+                            <div>
+                                <label for="otp_code"
+                                    class="block text-[10px] font-black text-gray-400 uppercase mb-2">OTP</label>
+                                <input id="otp_code" name="otp" type="text" inputmode="numeric"
+                                    maxlength="6" required
+                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm tracking-[0.3em] font-bold outline-none"
+                                    placeholder="123456">
+                            </div>
+
+                            <button type="submit" id="verifyOtpBtn"
+                                class="w-full bg-tf-red text-white py-3 rounded-xl font-black hover:bg-red-700 transition-colors">
+                                VERIFY OTP
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -649,6 +705,130 @@
             e.preventDefault();
 
             const form = e.target;
+            const otpModal = document.getElementById('otpModal');
+            const otpModalBackdrop = document.getElementById('otpModalBackdrop');
+            const closeOtpModalBtn = document.getElementById('closeOtpModalBtn');
+            const otpVerifyForm = document.getElementById('otpVerifyForm');
+            const otpReportNumber = document.getElementById('otp_report_number');
+            const otpReporterEmail = document.getElementById('otp_reporter_email');
+            const otpCode = document.getElementById('otp_code');
+            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+
+            function openOtpModal() {
+                otpModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                setTimeout(() => otpCode.focus(), 150);
+            }
+
+            function closeOtpModal() {
+                otpModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            if (otpModalBackdrop && !otpModalBackdrop.dataset.bound) {
+                otpModalBackdrop.addEventListener('click', closeOtpModal);
+                otpModalBackdrop.dataset.bound = '1';
+            }
+
+            if (closeOtpModalBtn && !closeOtpModalBtn.dataset.bound) {
+                closeOtpModalBtn.addEventListener('click', closeOtpModal);
+                closeOtpModalBtn.dataset.bound = '1';
+            }
+
+            if (otpVerifyForm && !otpVerifyForm.dataset.bound) {
+                otpVerifyForm.addEventListener('submit', async function(verifyEvent) {
+                    verifyEvent.preventDefault();
+
+                    if (!otpVerifyForm.checkValidity()) {
+                        otpVerifyForm.reportValidity();
+                        return;
+                    }
+
+                    verifyOtpBtn.disabled = true;
+                    verifyOtpBtn.textContent = 'Verifying...';
+
+                    try {
+                        const verifyFormData = new FormData(otpVerifyForm);
+                        const verifyResponse = await fetch(otpVerifyForm.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': form.querySelector('input[name="_token"]')
+                                    .value
+                            },
+                            body: verifyFormData
+                        });
+
+                        const verifyData = await verifyResponse.json();
+
+                        if (verifyResponse.status === 422 && verifyData.errors) {
+                            Object.values(verifyData.errors).forEach((messages) => {
+                                if (messages && messages.length) {
+                                    notyf.open({
+                                        type: 'error',
+                                        message: messages[0]
+                                    });
+                                }
+                            });
+                            return;
+                        }
+
+                        if (verifyResponse.ok && verifyData.success) {
+                            notyf.open({
+                                type: 'success',
+                                message: verifyData.message ||
+                                    'OTP verified successfully. Your report is now confirmed.'
+                            });
+
+                            closeOtpModal();
+                            form.reset();
+                            otpVerifyForm.reset();
+
+                            if (window.clearEvidencePreview) {
+                                window.clearEvidencePreview();
+                            }
+                            if (window.resetVehicleEntries) {
+                                window.resetVehicleEntries();
+                            }
+
+                            const incidentTypeSelect = document.getElementById('incident_type');
+                            const incidentTypeOtherInput = document.getElementById(
+                                'incident_type_other');
+                            if (incidentTypeSelect && incidentTypeOtherInput) {
+                                incidentTypeOtherInput.classList.add('hidden');
+                                incidentTypeOtherInput.required = false;
+                                incidentTypeOtherInput.value = '';
+                            }
+
+                            if (marker) {
+                                map.removeLayer(marker);
+                                marker = null;
+                            }
+
+                            document.getElementById('lat').value = '';
+                            document.getElementById('lng').value = '';
+                            document.getElementById('location_name').value = '';
+                        } else {
+                            notyf.open({
+                                type: 'error',
+                                message: verifyData.message ||
+                                    'Unable to verify OTP. Please try again.'
+                            });
+                        }
+                    } catch (verifyError) {
+                        console.error(verifyError);
+                        notyf.open({
+                            type: 'error',
+                            message: 'Network error while verifying OTP.'
+                        });
+                    } finally {
+                        verifyOtpBtn.disabled = false;
+                        verifyOtpBtn.textContent = 'VERIFY OTP';
+                    }
+                });
+
+                otpVerifyForm.dataset.bound = '1';
+            }
 
             // Keep native required/type validation before AJAX submit.
             if (!form.checkValidity()) {
@@ -701,37 +881,19 @@
                 } else if (response.status === 200) {
                     notyf.open({
                         type: 'success',
-                        message: `Report submitted successfully. Reference: ${data.report_number}`
+                        message: `Report submitted. Check your email for OTP. Reference: ${data.report_number}`
                     });
 
-                    form.reset();
-                    if (window.clearEvidencePreview) {
-                        window.clearEvidencePreview();
-                    }
-                    if (window.resetVehicleEntries) {
-                        window.resetVehicleEntries();
-                    }
+                    otpReportNumber.value = data.report_number || '';
+                    otpReporterEmail.value = data.reporter_email || form.querySelector(
+                        'input[name="reporter_email"]').value;
 
-                    const incidentTypeSelect = document.getElementById('incident_type');
-                    const incidentTypeOtherInput = document.getElementById('incident_type_other');
-                    if (incidentTypeSelect && incidentTypeOtherInput) {
-                        incidentTypeOtherInput.classList.add('hidden');
-                        incidentTypeOtherInput.required = false;
-                        incidentTypeOtherInput.value = '';
-                    }
 
-                    if (marker) {
-                        map.removeLayer(marker);
-                        marker = null;
-                    }
-
-                    document.getElementById('lat').value = '';
-                    document.getElementById('lng').value = '';
-                    document.getElementById('location_name').value = '';
+                    openOtpModal();
                 } else {
                     notyf.open({
                         type: 'error',
-                        message: 'Something went wrong while submitting the report.'
+                        message: data.message || 'Something went wrong while submitting the report.'
                     });
                 }
             } catch (err) {

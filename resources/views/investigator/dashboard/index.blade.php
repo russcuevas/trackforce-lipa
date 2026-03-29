@@ -64,13 +64,9 @@
         }
 
         .recent-submission-list {
-            max-height: 26rem;
+            max-height: 30rem;
             overflow-y: auto;
             scrollbar-width: thin;
-        }
-
-        .recent-item {
-            min-height: 4.6rem;
         }
 
         .pulse-marker {
@@ -133,14 +129,13 @@
             position: fixed;
             inset: 1rem;
             z-index: 100;
-            height: auto !important;
-            width: auto;
             display: flex;
             flex-direction: column;
         }
 
         .map-card-expanded #map {
-            height: calc(100vh - 9rem) !important;
+            flex: 1 !important;
+            height: auto !important;
         }
 
         .map-backdrop {
@@ -160,19 +155,10 @@
         }
 
         @media (max-width: 640px) {
-            #mapCard {
-                height: auto !important;
-                margin-bottom: 1rem !important;
-            }
-
-            #map {
-                height: 16rem !important;
-            }
-
             .map-header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 0.75rem;
+                gap: 0.5rem;
             }
 
             .map-actions {
@@ -186,11 +172,6 @@
                 flex: 1 1 auto;
                 text-align: center;
                 justify-content: center;
-            }
-
-            .map-legend {
-                gap: 0.75rem;
-                line-height: 1.4;
             }
         }
     </style>
@@ -206,80 +187,91 @@
 
         @include('investigator.components.left_sidebar')
 
-        <main class="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50">
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-gray-50">
             @php
                 $maxAddressCount = max(1, (int) ($addressCounts->max('total_incidents') ?? 1));
             @endphp
 
-            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="stat-card p-5 rounded-xl border-l-4 border-yellow-500">
+            {{-- Stat Cards --}}
+            <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-yellow-500">
                     <p class="text-xs uppercase font-bold text-gray-500 mb-1">Total Incidents</p>
                     <div class="flex items-end justify-between">
-                        <h2 id="totalIncidentsValue" class="text-3xl font-black">{{ number_format($totalIncidents) }}
-                        </h2>
-                        <span class="text-yellow-500 text-sm font-bold"><i class="fa-solid fa-database"></i> Live</span>
+                        <h2 id="totalIncidentsValue" class="text-2xl md:text-3xl font-black">
+                            {{ number_format($totalIncidents) }}</h2>
+                        <span class="text-yellow-500 text-xs font-bold"><i class="fa-solid fa-database"></i> Live</span>
                     </div>
                 </div>
-                <div class="stat-card p-5 rounded-xl border-l-4 border-yellow-500">
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-yellow-500">
                     <p class="text-xs uppercase font-bold text-gray-500 mb-1">Under Investigation</p>
                     <div class="flex items-end justify-between">
-                        <h2 id="underInvestigationValue" class="text-3xl font-black">
+                        <h2 id="underInvestigationValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($underInvestigationCount) }}</h2>
-                        <i class="fa-solid fa-hourglass-half text-yellow-500 text-xl"></i>
+                        <i class="fa-solid fa-hourglass-half text-yellow-500 text-lg md:text-xl"></i>
                     </div>
                 </div>
-                <div class="stat-card p-5 rounded-xl border-l-4 border-yellow-500">
-                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Resolved Today</p>
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-yellow-500">
+                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Resolved</p>
                     <div class="flex items-end justify-between">
-                        <h2 id="resolvedTodayValue" class="text-3xl font-black">{{ number_format($resolvedTodayCount) }}
-                        </h2>
-                        <i class="fa-solid fa-check-double text-yellow-500 text-xl"></i>
+                        <h2 id="resolvedTodayValue" class="text-2xl md:text-3xl font-black">
+                            {{ number_format($resolvedTodayCount) }}</h2>
+                        <i class="fa-solid fa-check-double text-yellow-500 text-lg md:text-xl"></i>
                     </div>
                 </div>
-                <div class="stat-card p-5 rounded-xl border-l-4 border-yellow-500">
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-yellow-500">
                     <p class="text-xs uppercase font-bold text-gray-500 mb-1">Pending Review</p>
                     <div class="flex items-end justify-between">
-                        <h2 id="pendingReviewValue" class="text-3xl font-black">{{ number_format($pendingReviewCount) }}
-                        </h2>
-                        <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-xl"></i>
+                        <h2 id="pendingReviewValue" class="text-2xl md:text-3xl font-black">
+                            {{ number_format($pendingReviewCount) }}</h2>
+                        <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-lg md:text-xl"></i>
                     </div>
                 </div>
             </section>
 
-            <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {{-- Map + Recent Submissions --}}
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+                {{-- Map Card --}}
                 <div id="mapCard"
-                    class="lg:col-span-2 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 h-[30rem] mb-10 lg:mb-0">
-                    <div class="map-header flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-lg"><i class="fa-solid fa-map-pin text-tf-red mr-2"></i>Real Time
-                            Incident Map</h3>
+                    class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+
+                    <div
+                        class="map-header flex flex-wrap justify-between items-center gap-3 px-4 pt-4 pb-3 border-b border-gray-50">
+                        <h3 class="font-bold text-base flex items-center gap-2">
+                            <i class="fa-solid fa-map-pin text-tf-red"></i>Real-Time Incident Map
+                        </h3>
                         <div class="map-actions flex items-center gap-2">
                             <span id="mapPinsCount"
-                                class="text-xs bg-tf-blue text-white px-3 py-1 rounded">{{ $mapIncidents->count() }}
-                                Pins</span>
+                                class="text-xs bg-tf-blue text-white px-3 py-1 rounded-lg font-bold">
+                                {{ $mapIncidents->count() }} Pins
+                            </span>
                             <button id="expandMapBtn" type="button"
-                                class="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded font-bold hover:bg-gray-200 transition-colors">
-                                <i class="fa-solid fa-expand mr-1"></i> Expand Map
+                                class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-lg font-bold hover:bg-gray-200 transition-colors flex items-center gap-1">
+                                <i class="fa-solid fa-expand"></i> Fullscreen
                             </button>
                         </div>
                     </div>
-                    <div id="map" class="w-full h-[30rem] rounded-lg z-10"></div>
-                    <div class="map-legend mt-3 flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-600">
-                        <span class="text-gray-500 uppercase tracking-wide">Pin Legend:</span>
-                        <span class="flex items-center gap-2">
-                            <span class="inline-block w-3 h-3 rounded-full bg-tf-red"></span>
-                            Pending
+
+                    <div id="map" class="w-full h-52 sm:h-72 md:h-80 lg:h-[30rem]"></div>
+
+                    <div
+                        class="map-legend flex flex-wrap items-center gap-x-5 gap-y-1.5 px-4 py-3 border-t border-gray-100 text-xs font-semibold text-gray-500">
+                        <span class="text-gray-400 uppercase tracking-wide text-[10px]">Legend:</span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-tf-red flex-shrink-0"></span> Pending
                         </span>
-                        <span class="flex items-center gap-2">
-                            <span class="inline-block w-3 h-3 rounded-full bg-yellow-500"></span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-500 flex-shrink-0"></span>
                             Under Investigation
                         </span>
-                        <span class="flex items-center gap-2">
-                            <span class="inline-block w-3 h-3 rounded-full bg-green-600"></span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-600 flex-shrink-0"></span>
                             Resolved
                         </span>
                     </div>
                 </div>
 
+                {{-- Recent Submissions --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
                     <h3 class="font-bold text-lg mb-4">Recent Submissions</h3>
                     <div id="recentSubmissionsList" class="space-y-4 recent-submission-list pr-2">
@@ -326,17 +318,20 @@
                         @endforelse
                     </div>
                     <a href="{{ route('investigator.incident.report.page') }}"
-                        class="mt-4 w-full border border-tf-blue text-tf-blue py-2 rounded text-sm font-bold hover:bg-tf-blue hover:text-white transition-colors text-center">View
+                        class="mt-4 w-full border border-tf-blue text-tf-blue py-2 rounded text-sm font-bold hover:bg-tf-blue hover:text-black transition-colors text-center">View
                         All Reports</a>
                 </div>
             </section>
 
-            <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 lg:col-span-12">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-lg"><i class="fa-solid fa-location-dot text-tf-red mr-2"></i>Incident
-                            Count Per Address</h3>
-                        <span class="text-xs font-bold text-gray-400 uppercase">Top 10 Locations</span>
+            {{-- Address Counts --}}
+            <section>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-bold text-base flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot text-tf-red"></i> Incident Count Per Address
+                        </h3>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Top 10
+                            Locations</span>
                     </div>
 
                     @if ($addressCounts->isEmpty())
@@ -344,18 +339,19 @@
                             <p class="text-sm text-gray-400 py-6 text-center">No incident addresses recorded yet.</p>
                         </div>
                     @else
-                        <div id="addressCountsList" class="space-y-4">
+                        <div id="addressCountsList" class="space-y-3">
                             @foreach ($addressCounts as $address)
                                 <div>
-                                    <div class="flex items-center justify-between gap-4 mb-1">
+                                    <div class="flex items-center justify-between gap-4 mb-1.5">
                                         <p class="text-sm font-semibold text-gray-700 truncate">
                                             {{ $address->location_name }}</p>
-                                        <span
-                                            class="text-xs font-black text-tf-blue uppercase">{{ $address->total_incidents }}
-                                            report{{ (int) $address->total_incidents === 1 ? '' : 's' }}</span>
+                                        <span class="text-xs font-black text-tf-blue uppercase shrink-0">
+                                            {{ $address->total_incidents }}
+                                            report{{ (int) $address->total_incidents === 1 ? '' : 's' }}
+                                        </span>
                                     </div>
                                     <div class="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                                        <div class="h-full bg-tf-blue"
+                                        <div class="h-full rounded-full bg-tf-blue transition-all duration-500"
                                             style="width: {{ min(100, ((int) $address->total_incidents / $maxAddressCount) * 100) }}%">
                                         </div>
                                     </div>
@@ -366,26 +362,23 @@
                 </div>
             </section>
 
-            <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 lg:col-span-12">
-
-                    <h3 class="font-bold text-lg mb-4"><i class="fa-solid fa-chart-column text-tf-blue">
-                        </i> High-Risk
-                        Demographics</h3>
-
-
+            {{-- Demographics --}}
+            <section>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-base mb-5 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-tf-blue"></i> High-Risk Demographics
+                    </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <h4 class="text-xs font-bold text-gray-500 mb-2 uppercase">Age Groups</h4>
+                            <h4 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Age Groups</h4>
                             <canvas id="ageChart"></canvas>
                         </div>
-
                         <div>
-                            <h4 class="text-xs font-bold text-gray-500 mb-2 uppercase">Sex Distribution</h4>
+                            <h4 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Sex Distribution
+                            </h4>
                             <canvas id="sexChart"></canvas>
                         </div>
                     </div>
-
                 </div>
             </section>
         </main>

@@ -44,13 +44,17 @@ class DashboardController extends Controller
 
     private function buildDashboardData(): array
     {
-        $totalIncidents = DB::table('incidents')->count();
+        $totalIncidents = DB::table('incidents')
+            ->where('is_verified', 1)
+            ->count();
 
         $underInvestigationCount = DB::table('incidents')
+            ->where('is_verified', 1)
             ->whereIn(DB::raw('LOWER(COALESCE(status, ""))'), ['under investigation', 'investigating', 'in progress'])
             ->count();
 
         $resolvedTodayCount = DB::table('incidents')
+            ->where('is_verified', 1)
             ->where(function ($query) {
                 $query->whereNull('status')
                     ->orWhereIn(DB::raw('LOWER(status)'), ['resolved', 'completed']);
@@ -58,6 +62,7 @@ class DashboardController extends Controller
             ->count();
 
         $pendingReviewCount = DB::table('incidents')
+            ->where('is_verified', 1)
             ->where(function ($query) {
                 $query->whereNull('status')
                     ->orWhereIn(DB::raw('LOWER(status)'), ['pending', 'pending review']);
@@ -65,12 +70,14 @@ class DashboardController extends Controller
             ->count();
 
         $recentIncidents = DB::table('incidents')
+            ->where('is_verified', 1)
             ->select('report_number', 'incident_type', 'location_name', 'status', 'created_at')
             ->orderByDesc('created_at')
             ->limit(10)
             ->get();
 
         $mapIncidents = DB::table('incidents')
+            ->where('is_verified', 1)
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->select('report_number', 'incident_type', 'location_name', 'status', 'latitude', 'longitude')
@@ -90,6 +97,7 @@ class DashboardController extends Controller
 
         $addressCounts = DB::table('incidents')
             ->select('location_name', DB::raw('COUNT(*) as total_incidents'))
+            ->where('is_verified', 1)
             ->whereNotNull('location_name')
             ->where('location_name', '!=', '')
             ->groupBy('location_name')
@@ -98,6 +106,8 @@ class DashboardController extends Controller
             ->get();
 
         $ageBuckets = DB::table('involved_parties')
+            ->join('incidents', 'incidents.id', '=', 'involved_parties.incident_id')
+            ->where('incidents.is_verified', 1)
             ->selectRaw(
                 'SUM(CASE WHEN age BETWEEN 18 AND 20 THEN 1 ELSE 0 END) as age_18_20,
                  SUM(CASE WHEN age BETWEEN 21 AND 30 THEN 1 ELSE 0 END) as age_21_30,
@@ -107,6 +117,8 @@ class DashboardController extends Controller
             ->first();
 
         $sexBuckets = DB::table('involved_parties')
+            ->join('incidents', 'incidents.id', '=', 'involved_parties.incident_id')
+            ->where('incidents.is_verified', 1)
             ->selectRaw(
                 'SUM(CASE WHEN LOWER(sex) = "male" THEN 1 ELSE 0 END) as male,
                  SUM(CASE WHEN LOWER(sex) = "female" THEN 1 ELSE 0 END) as female,

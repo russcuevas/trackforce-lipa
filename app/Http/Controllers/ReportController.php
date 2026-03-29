@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class ReportController extends Controller
@@ -11,6 +13,17 @@ class ReportController extends Controller
     public function ReportPage()
     {
         return view('report');
+    }
+
+    public function VerifyOtpPage(Request $request)
+    {
+        $request->validate([
+            'report_number' => 'required|string|max:30',
+        ]);
+
+        return view('report_verify', [
+            'reportNumber' => $request->query('report_number'),
+        ]);
     }
 
     public function CreateReportPage(Request $request)
@@ -115,10 +128,122 @@ class ReportController extends Controller
             }
         }
 
+        try {
+            $this->sendOtpEmail($request->reporter_email, $reportNumber, (string) $otp);
+        } catch (\Throwable $exception) {
+            Log::error('Failed to send report OTP email.', [
+                'report_number' => $reportNumber,
+                'reporter_email' => $request->reporter_email,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Report saved but OTP email could not be sent. Please try again later.',
+            ], 500);
+        }
+
         // ✅ Return success JSON for AJAX
         return response()->json([
             'success' => true,
             'report_number' => $reportNumber,
+            'reporter_email' => $request->reporter_email,
+            'verify_url' => route('report.verify.page', ['report_number' => $reportNumber]),
         ]);
+    }
+
+    public function VerifyOtpRequest(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'report_number' => 'required|string|max:30',
+            'reporter_email' => 'required|email',
+            'otp' => 'required|digits:6',
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $incident = DB::table('incidents')
+            ->select('id', 'otp', 'is_verified')
+            ->where('report_number', $request->report_number)
+            ->where('reporter_email', $request->reporter_email)
+            ->first();
+
+        if (!$incident) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'errors' => ['report_number' => ['Report number and email do not match any submission.']],
+                ], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withErrors(['report_number' => 'Report number and email do not match any submission.'])
+                ->withInput();
+        }
+
+        if ((int) $incident->is_verified === 1) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'This report is already verified.',
+                ]);
+            }
+
+            return redirect()
+                ->back()
+                ->with('success', 'This report is already verified.');
+        }
+
+        if ((string) $incident->otp !== (string) $request->otp) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'errors' => ['otp' => ['Invalid OTP. Please check the code sent to your email.']],
+                ], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withErrors(['otp' => 'Invalid OTP. Please check the code sent to your email.'])
+                ->withInput();
+        }
+
+        DB::table('incidents')
+            ->where('id', $incident->id)
+            ->update([
+                'is_verified' => 1,
+                'otp' => '',
+                'updated_at' => now(),
+            ]);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP verified successfully. Your report is now confirmed.',
+            ]);
+        }
+
+        return redirect()
+            ->back()
+            ->with('success', 'OTP verified successfully. Your report is now confirmed.');
+    }
+
+    private function sendOtpEmail(string $reporterEmail, string $reportNumber, string $otp): void
+    {
+        Mail::send('emails.report_otp', [
+            'reportNumber' => $reportNumber,
+            'otp' => $otp,
+        ], function ($message) use ($reporterEmail, $reportNumber) {
+            $message->to($reporterEmail)
+                ->subject('TrackForce Lipa OTP Verification - ' . $reportNumber);
+        });
     }
 }
