@@ -67,49 +67,33 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-
-                                    <td class="py-4 px-4">
-                                        <i class="fa-solid fa-folder text-tf-yellow text-2xl"></i>
-                                        &nbsp;
-                                        <span class="font-bold text-gray-700">March 2026</span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <span
-                                            class="bg-blue-100 text-tf-blue px-3 py-1 rounded-full text-xs font-bold">42
-                                            Reports</span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex justify-center">
-                                            <a href=""
-                                            class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
-                                                <i class="fa-solid fa-eye"></i>
-                                                <span class="uppercase tracking-wider">View Reports</span>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4">
-                                        <i class="fa-solid fa-folder text-tf-yellow text-2xl"></i>
-                                        &nbsp;
-                                        <span class="font-bold text-gray-700">February 2026</span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <span
-                                            class="bg-blue-100 text-tf-blue px-3 py-1 rounded-full text-xs font-bold">28
-                                            Reports</span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex justify-center">
-                                            <a href=""
-                                            class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
-                                                <i class="fa-solid fa-eye"></i>
-                                                <span class="uppercase tracking-wider">View Reports</span>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
+                                @foreach ($monthlyIncidentReports as $group)
+                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <i class="fa-solid fa-folder text-tf-yellow text-2xl"></i>
+                                            &nbsp;
+                                            <span class="font-bold text-gray-700">
+                                                {{ \Illuminate\Support\Carbon::createFromDate((int) $group->year_value, (int) $group->month_value, 1)->format('F Y') }}
+                                            </span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="bg-blue-100 text-tf-blue px-3 py-1 rounded-full text-xs font-bold">
+                                                {{ (int) $group->reports_count }}
+                                                Report{{ (int) $group->reports_count === 1 ? '' : 's' }}
+                                            </span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex justify-center">
+                                                <a href="{{ route('investigator.documentation.reports.page', ['year' => (int) $group->year_value, 'month' => (int) $group->month_value]) }}"
+                                                    class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                    <span class="uppercase tracking-wider">View Reports</span>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

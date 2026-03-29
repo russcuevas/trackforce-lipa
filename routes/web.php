@@ -47,6 +47,13 @@ Route::delete('/investigator/accounts/{investigator}/delete', [AccountController
 
 
 Route::get('/investigator/documentations', [DocumentationController::class, 'DocumentationPage'])->name('investigator.documentation.page');
+Route::get('/investigator/documentations/{year}/{month}/reports', [DocumentationController::class, 'DocumentationReportsPage'])
+    ->whereNumber('year')
+    ->whereNumber('month')
+    ->name('investigator.documentation.reports.page');
+Route::get('/investigator/documentations/reports/{incident}/print', [DocumentationController::class, 'DocumentationPrintReportPage'])
+    ->whereNumber('incident')
+    ->name('investigator.documentation.print.report.page');
 
 // INVESTIGATOR INCIDENTS ROUTE
 Route::get('/investigator/incidents/reports', [IncidentReportController::class, 'IncidentReportPage'])->name('investigator.incident.report.page');
