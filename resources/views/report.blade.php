@@ -72,6 +72,20 @@
         .nav-link:hover::after {
             width: 100%;
         }
+
+        .mobile-menu {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transform: translateY(-8px);
+            transition: max-height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease, transform 0.35s ease;
+        }
+
+        .mobile-menu.open {
+            max-height: 320px;
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 
@@ -99,9 +113,24 @@
                 </a>
             </div>
 
-            <button class="md:hidden text-tf-blue text-2xl">
+            <button id="mobileMenuButton" type="button" class="md:hidden text-tf-blue text-2xl"
+                aria-label="Toggle menu" aria-controls="mobileMenu" aria-expanded="false">
                 <i class="fa-solid fa-bars-staggered"></i>
             </button>
+        </div>
+
+        <div id="mobileMenu" class="mobile-menu md:hidden border-t border-gray-100 bg-white px-6">
+            <div class="py-4 flex flex-col gap-3">
+                <a href="{{ route('home.page') }}"
+                    class="font-bold text-gray-500 hover:text-tf-blue text-sm uppercase tracking-wider py-2">Home</a>
+                <a href="{{ route('track.case.page') }}"
+                    class="font-bold text-gray-500 hover:text-tf-blue text-sm uppercase tracking-wider py-2">Track
+                    Case</a>
+                <a href="{{ route('report.page') }}"
+                    class="bg-tf-red text-white px-6 py-3 rounded-xl font-black text-xs uppercase shadow-lg shadow-red-200 hover:bg-red-700 transition-all text-center mt-1">
+                    Report Incident
+                </a>
+            </div>
         </div>
     </nav>
 
@@ -192,9 +221,19 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Tap/Click on the map to
-                        pin
-                        the exact location</label>
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase">Tap/Click on the map to
+                            pin
+                            the exact location</label>
+                        <button type="button" id="useCurrentLocationBtn"
+                            class="inline-flex items-center gap-2 text-[11px] font-bold bg-blue-50 text-tf-blue border border-blue-100 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                            Use My Current Location
+                        </button>
+                    </div>
+                    <p id="locationHint" class="text-[11px] text-gray-400 mb-2">
+                        On mobile, tap "Use My Current Location" and allow location permission.
+                    </p>
                     <div id="map" class="border-2 border-gray-100 shadow-inner"></div>
                 </div>
 
@@ -317,6 +356,37 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script>
+        (function() {
+            const menuButton = document.getElementById('mobileMenuButton');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            if (!menuButton || !mobileMenu) {
+                return;
+            }
+
+            const menuIcon = menuButton.querySelector('i');
+
+            function setMenuState(isOpen) {
+                mobileMenu.classList.toggle('open', isOpen);
+                menuButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                if (menuIcon) {
+                    menuIcon.classList.toggle('fa-bars-staggered', !isOpen);
+                    menuIcon.classList.toggle('fa-xmark', isOpen);
+                }
+            }
+
+            menuButton.addEventListener('click', function() {
+                setMenuState(!mobileMenu.classList.contains('open'));
+            });
+
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    setMenuState(false);
+                }
+            });
+        })();
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const fileUpload = document.getElementById('fileUpload');
@@ -678,12 +748,21 @@
     </script>
     <script>
         const map = L.map('map').setView([13.9414, 121.1644], 14);
+        const useCurrentLocationBtn = document.getElementById('useCurrentLocationBtn');
+        const locationHint = document.getElementById('locationHint');
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
         let marker;
+
+        function setLocationHint(message, isError = false) {
+            if (!locationHint) return;
+            locationHint.textContent = message;
+            locationHint.classList.toggle('text-red-500', isError);
+            locationHint.classList.toggle('text-gray-400', !isError);
+        }
 
         async function getAddress(lat, lng) {
             try {
@@ -697,24 +776,80 @@
             }
         }
 
-        map.on('click', async function(e) {
-            const {
-                lat,
-                lng
-            } = e.latlng;
-
-            document.getElementById('lat').value = lat.toFixed(8);
-            document.getElementById('lng').value = lng.toFixed(8);
+        async function applyMapLocation(lat, lng) {
+            document.getElementById('lat').value = Number(lat).toFixed(8);
+            document.getElementById('lng').value = Number(lng).toFixed(8);
 
             if (marker) {
                 map.removeLayer(marker);
             }
 
             marker = L.marker([lat, lng]).addTo(map);
+            map.setView([lat, lng], 17, {
+                animate: true
+            });
+
             document.getElementById('location_name').value = "Detecting address...";
             const address = await getAddress(lat, lng);
             document.getElementById('location_name').value = address;
+        }
+
+        map.on('click', async function(e) {
+            const {
+                lat,
+                lng
+            } = e.latlng;
+            await applyMapLocation(lat, lng);
+            setLocationHint("Location selected from map.");
         });
+
+        if (useCurrentLocationBtn) {
+            useCurrentLocationBtn.addEventListener('click', function() {
+                if (!navigator.geolocation) {
+                    setLocationHint("Geolocation is not supported on this browser/device.", true);
+                    return;
+                }
+
+                const originalLabel = useCurrentLocationBtn.innerHTML;
+                useCurrentLocationBtn.disabled = true;
+                useCurrentLocationBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Getting Location...';
+                setLocationHint("Waiting for location permission...");
+
+                navigator.geolocation.getCurrentPosition(
+                    async function(position) {
+                            const {
+                                latitude,
+                                longitude
+                            } = position.coords;
+
+                            await applyMapLocation(latitude, longitude);
+                            setLocationHint("Current location captured successfully.");
+                            useCurrentLocationBtn.disabled = false;
+                            useCurrentLocationBtn.innerHTML = originalLabel;
+                        },
+                        function(error) {
+                            let message = "Unable to get your location. Please tap on the map instead.";
+
+                            if (error.code === error.PERMISSION_DENIED) {
+                                message =
+                                    "Location permission denied. Please allow location access and try again.";
+                            } else if (error.code === error.POSITION_UNAVAILABLE) {
+                                message = "Location information is unavailable right now.";
+                            } else if (error.code === error.TIMEOUT) {
+                                message = "Location request timed out. Please try again.";
+                            }
+
+                            setLocationHint(message, true);
+                            useCurrentLocationBtn.disabled = false;
+                            useCurrentLocationBtn.innerHTML = originalLabel;
+                        }, {
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 0
+                        }
+                );
+            });
+        }
     </script>
 </body>
 

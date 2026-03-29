@@ -34,6 +34,7 @@ Route::get('/login', [AuthController::class, 'LoginPage'])->name('auth.login.pag
 
 // INVESTIGATOR ROUTE
 Route::get('/investigator/dashboard', [DashboardController::class, 'DashboardPage'])->name('investigator.dashboard.page');
+Route::get('/investigator/dashboard/data', [DashboardController::class, 'DashboardData'])->name('investigator.dashboard.data');
 
 
 // INVESTIGATOR ACCOUNT ROUTE

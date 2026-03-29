@@ -5,7 +5,8 @@
         <a href="{{ route('investigator.dashboard.page') }}"
             class="flex items-center gap-4 p-3 rounded-lg group
             {{ request()->routeIs('investigator.dashboard.page') ? 'nav-active text-white' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
-            <i class="fa-solid fa-chart-line {{ request()->routeIs('investigator.dashboard.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
+            <i
+                class="fa-solid fa-chart-line {{ request()->routeIs('investigator.dashboard.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
             <span class="hidden lg:block font-medium">Dashboard</span>
         </a>
 
@@ -13,7 +14,8 @@
         <a href="{{ route('investigator.account.page') }}"
             class="flex items-center gap-4 p-3 rounded-lg group
             {{ request()->routeIs('investigator.account.page') ? 'nav-active text-white' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
-            <i class="fa-solid fa-users {{ request()->routeIs('investigator.account.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
+            <i
+                class="fa-solid fa-users {{ request()->routeIs('investigator.account.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
             <span class="hidden lg:block">Accounts</span>
         </a>
 
@@ -21,7 +23,8 @@
         <a href="{{ route('investigator.documentation.page') }}"
             class="flex items-center gap-4 p-3 rounded-lg group
             {{ request()->routeIs('investigator.documentation.page') ? 'nav-active text-white' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
-            <i class="fa-solid fa-file-signature {{ request()->routeIs('investigator.documentation.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
+            <i
+                class="fa-solid fa-file-signature {{ request()->routeIs('investigator.documentation.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
             <span class="hidden lg:block">Documentations</span>
         </a>
 
@@ -29,7 +32,8 @@
         <a href="{{ route('investigator.incident.report.page') }}"
             class="flex items-center gap-4 p-3 rounded-lg group
             {{ request()->routeIs('investigator.incident.report.page') ? 'nav-active text-white' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
-            <i class="fa-solid fa-list-check {{ request()->routeIs('investigator.incident.report.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
+            <i
+                class="fa-solid fa-list-check {{ request()->routeIs('investigator.incident.report.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
             <span class="hidden lg:block">Incident Reports</span>
         </a>
 
@@ -37,7 +41,8 @@
         <a href="{{ route('investigator.logs.page') }}"
             class="flex items-center gap-4 p-3 rounded-lg group
             {{ request()->routeIs('investigator.logs.page') ? 'nav-active text-white' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
-            <i class="fa-solid fa-history {{ request()->routeIs('investigator.logs.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
+            <i
+                class="fa-solid fa-history {{ request()->routeIs('investigator.logs.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
             <span class="hidden lg:block">Audit Trail Logs</span>
         </a>
 
