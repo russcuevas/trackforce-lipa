@@ -190,7 +190,60 @@
         <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-gray-50">
             @php
                 $maxAddressCount = max(1, (int) ($addressCounts->max('total_incidents') ?? 1));
+                $monthOptions = [
+                    1 => 'January',
+                    2 => 'February',
+                    3 => 'March',
+                    4 => 'April',
+                    5 => 'May',
+                    6 => 'June',
+                    7 => 'July',
+                    8 => 'August',
+                    9 => 'September',
+                    10 => 'October',
+                    11 => 'November',
+                    12 => 'December',
+                ];
             @endphp
+
+            {{-- Period Filters --}}
+            <section>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                        <div>
+                            <h3 class="font-bold text-base flex items-center gap-2">
+                                <i class="fa-solid fa-filter text-tf-blue"></i> Dashboard Period Filter
+                            </h3>
+                            <p class="text-xs text-gray-500 mt-1">Choose month and year to update all dashboard
+                                breakdowns.</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+                            <select id="filterMonth"
+                                class="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                <option value="">All Months</option>
+                                @foreach ($monthOptions as $monthValue => $monthLabel)
+                                    <option value="{{ $monthValue }}" @selected((int) ($selectedMonth ?? 0) === $monthValue)>
+                                        {{ $monthLabel }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <select id="filterYear"
+                                class="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                <option value="">All Years</option>
+                                @foreach ($availableYears as $yearValue)
+                                    <option value="{{ $yearValue }}" @selected((int) ($selectedYear ?? 0) === (int) $yearValue)>
+                                        {{ $yearValue }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button id="applyPeriodFilterBtn" type="button"
+                                class="bg-tf-blue text-white text-sm font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+                                Apply Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             {{-- Stat Cards --}}
             <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -323,6 +376,67 @@
                 </div>
             </section>
 
+            {{-- Incident and Vehicle Type Breakdown --}}
+            <section>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-base mb-5 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-tf-red"></i> Type Breakdown by Percentage
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Incident Type
+                                </h4>
+                                <span class="text-[10px] uppercase font-bold text-gray-400">By count</span>
+                            </div>
+                            <p class="text-sm mb-3">
+                                Top Type:
+                                <span id="incidentTypeTopLabel" class="font-bold text-tf-blue">-</span>
+                                <span id="incidentTypeTopPercent"
+                                    class="text-xs font-black text-tf-red ml-1">0%</span>
+                                <span id="incidentTypeTopCount" class="text-xs text-gray-500 ml-1">(0)</span>
+                            </p>
+                            <canvas id="incidentTypeChart"></canvas>
+                        </div>
+                        <div class="p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Vehicle Type
+                                </h4>
+                                <span class="text-[10px] uppercase font-bold text-gray-400">By count</span>
+                            </div>
+                            <p class="text-sm mb-3">
+                                Top Type:
+                                <span id="vehicleTypeTopLabel" class="font-bold text-tf-blue">-</span>
+                                <span id="vehicleTypeTopPercent" class="text-xs font-black text-tf-red ml-1">0%</span>
+                                <span id="vehicleTypeTopCount" class="text-xs text-gray-500 ml-1">(0)</span>
+                            </p>
+                            <canvas id="vehicleTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+
+            {{-- Demographics --}}
+            <section>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-base mb-5 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-tf-blue"></i> High-Risk Demographics
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Age Groups</h4>
+                            <canvas id="ageChart"></canvas>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Sex Distribution
+                            </h4>
+                            <canvas id="sexChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
             {{-- Address Counts --}}
             <section>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
@@ -362,25 +476,6 @@
                 </div>
             </section>
 
-            {{-- Demographics --}}
-            <section>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-base mb-5 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-column text-tf-blue"></i> High-Risk Demographics
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h4 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Age Groups</h4>
-                            <canvas id="ageChart"></canvas>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Sex Distribution
-                            </h4>
-                            <canvas id="sexChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </main>
     </div>
 
@@ -388,6 +483,68 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const numberFormatter = new Intl.NumberFormat();
+        const dashboardDataUrl = '{{ route('investigator.dashboard.data') }}';
+        const dashboardPageUrl = '{{ route('investigator.dashboard.page') }}';
+        const breakdownPalette = ['#0B3D91', '#CE1126', '#FFD700', '#16a34a', '#f97316', '#06b6d4', '#8b5cf6', '#64748b',
+            '#f43f5e', '#14b8a6'
+        ];
+
+        const filterMonthSelect = document.getElementById('filterMonth');
+        const filterYearSelect = document.getElementById('filterYear');
+        const applyPeriodFilterBtn = document.getElementById('applyPeriodFilterBtn');
+        let currentFilters = {
+            month: @json($selectedMonth),
+            year: @json($selectedYear)
+        };
+
+        function toNullableInt(value) {
+            if (value === null || value === undefined || value === '') {
+                return null;
+            }
+
+            const parsedValue = Number(value);
+            return Number.isFinite(parsedValue) ? parsedValue : null;
+        }
+
+        function buildFilterQueryParams() {
+            const query = new URLSearchParams();
+
+            if (currentFilters.month !== null) {
+                query.set('month', String(currentFilters.month));
+            }
+
+            if (currentFilters.year !== null) {
+                query.set('year', String(currentFilters.year));
+            }
+
+            return query;
+        }
+
+        function syncFilterUrl() {
+            const query = buildFilterQueryParams();
+            const queryString = query.toString();
+            const targetUrl = queryString ? `${dashboardPageUrl}?${queryString}` : dashboardPageUrl;
+            window.history.replaceState({}, '', targetUrl);
+        }
+
+        function setFilterControlValues() {
+            if (filterMonthSelect) {
+                filterMonthSelect.value = currentFilters.month === null ? '' : String(currentFilters.month);
+            }
+
+            if (filterYearSelect) {
+                filterYearSelect.value = currentFilters.year === null ? '' : String(currentFilters.year);
+            }
+        }
+
+        function applyCurrentFilterSelection() {
+            currentFilters = {
+                month: toNullableInt(filterMonthSelect?.value ?? ''),
+                year: toNullableInt(filterYearSelect?.value ?? '')
+            };
+            syncFilterUrl();
+            refreshDashboardData();
+        }
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -487,6 +644,119 @@
                 }
             }
         });
+
+        function normalizeBreakdownData(breakdown) {
+            const labels = Array.isArray(breakdown?.labels) ? breakdown.labels : [];
+            const counts = Array.isArray(breakdown?.counts) ? breakdown.counts.map((value) => Number(value || 0)) : [];
+
+            const filtered = labels
+                .map((label, index) => ({
+                    label: String(label ?? '').trim() || 'Unknown',
+                    count: Number(counts[index] || 0)
+                }))
+                .filter((item) => item.count > 0);
+
+            if (!filtered.length) {
+                return {
+                    labels: ['No data'],
+                    counts: [1],
+                    colors: ['#e5e7eb']
+                };
+            }
+
+            return {
+                labels: filtered.map((item) => item.label),
+                counts: filtered.map((item) => item.count),
+                colors: filtered.map((_, index) => breakdownPalette[index % breakdownPalette.length])
+            };
+        }
+
+        function createBreakdownChart(chartId, breakdown) {
+            const chartData = normalizeBreakdownData(breakdown);
+            const chartCtx = document.getElementById(chartId).getContext('2d');
+
+            return new Chart(chartCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        data: chartData.counts,
+                        backgroundColor: chartData.colors,
+                        borderColor: '#ffffff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    cutout: '58%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 10,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label(context) {
+                                    if (context.label === 'No data') {
+                                        return 'No data available';
+                                    }
+
+                                    const values = context.dataset.data || [];
+                                    const total = values.reduce((sum, value) => sum + Number(value || 0), 0);
+                                    const value = Number(context.raw || 0);
+                                    const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+
+                                    return `${context.label}: ${numberFormatter.format(value)} (${percent}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBreakdownChart(chart, breakdown) {
+            const chartData = normalizeBreakdownData(breakdown);
+            chart.data.labels = chartData.labels;
+            chart.data.datasets[0].data = chartData.counts;
+            chart.data.datasets[0].backgroundColor = chartData.colors;
+            chart.update();
+        }
+
+        function updateTopTypeSummary(prefix, breakdown) {
+            const topLabelElement = document.getElementById(`${prefix}TopLabel`);
+            const topPercentElement = document.getElementById(`${prefix}TopPercent`);
+            const topCountElement = document.getElementById(`${prefix}TopCount`);
+
+            const topLabel = String(breakdown?.top_label ?? '').trim();
+            const topCount = Number(breakdown?.top_count || 0);
+            const topPercent = Number(breakdown?.top_percent || 0);
+
+            if (!topLabel || topCount <= 0) {
+                topLabelElement.textContent = 'No data yet';
+                topPercentElement.textContent = '0%';
+                topCountElement.textContent = '(0)';
+                return;
+            }
+
+            topLabelElement.textContent = topLabel;
+            topPercentElement.textContent = `${topPercent.toFixed(2)}%`;
+            topCountElement.textContent = `(${numberFormatter.format(topCount)})`;
+        }
+
+        const incidentTypeBreakdown = @json($incidentTypeBreakdown);
+        const vehicleTypeBreakdown = @json($vehicleTypeBreakdown);
+
+        const incidentTypeChart = createBreakdownChart('incidentTypeChart', incidentTypeBreakdown);
+        const vehicleTypeChart = createBreakdownChart('vehicleTypeChart', vehicleTypeBreakdown);
+
+        updateTopTypeSummary('incidentType', incidentTypeBreakdown);
+        updateTopTypeSummary('vehicleType', vehicleTypeBreakdown);
 
         let incidents = @json($mapIncidents);
         const map = L.map('map').setView([13.9419, 121.1644], 13);
@@ -612,6 +882,13 @@
             sexChart.update();
         }
 
+        function updateBreakdownCharts(incidentBreakdown, vehicleBreakdown) {
+            updateBreakdownChart(incidentTypeChart, incidentBreakdown);
+            updateBreakdownChart(vehicleTypeChart, vehicleBreakdown);
+            updateTopTypeSummary('incidentType', incidentBreakdown);
+            updateTopTypeSummary('vehicleType', vehicleBreakdown);
+        }
+
         function updateStats(data) {
             document.getElementById('totalIncidentsValue').textContent = numberFormatter.format(data.total_incidents || 0);
             document.getElementById('underInvestigationValue').textContent = numberFormatter.format(data
@@ -665,7 +942,10 @@
 
         async function refreshDashboardData() {
             try {
-                const response = await fetch('{{ route('investigator.dashboard.data') }}', {
+                const query = buildFilterQueryParams();
+                const requestUrl = query.toString() ? `${dashboardDataUrl}?${query.toString()}` : dashboardDataUrl;
+
+                const response = await fetch(requestUrl, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
@@ -682,11 +962,29 @@
                 renderAddressCounts(data.address_counts || []);
                 renderMapIncidents(data.map_incidents || [], false);
                 updateCharts(data.age_chart_data || [0, 0, 0, 0], data.sex_chart_data || [0, 0, 0]);
+                updateBreakdownCharts(data.incident_type_breakdown || null, data.vehicle_type_breakdown || null);
+
+                currentFilters.month = toNullableInt(data.selected_month);
+                currentFilters.year = toNullableInt(data.selected_year);
+                setFilterControlValues();
             } catch (error) {
                 console.error('Live dashboard refresh failed:', error);
             }
         }
 
+        if (applyPeriodFilterBtn) {
+            applyPeriodFilterBtn.addEventListener('click', applyCurrentFilterSelection);
+        }
+
+        if (filterMonthSelect) {
+            filterMonthSelect.addEventListener('change', applyCurrentFilterSelection);
+        }
+
+        if (filterYearSelect) {
+            filterYearSelect.addEventListener('change', applyCurrentFilterSelection);
+        }
+
+        setFilterControlValues();
         renderMapIncidents(incidents, true);
         setInterval(refreshDashboardData, 8000);
     </script>
