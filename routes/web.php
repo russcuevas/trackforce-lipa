@@ -56,8 +56,7 @@ Route::middleware('investigator.auth')->group(function () {
     Route::patch('/investigator/notifications/{notification}/read', [NotificationController::class, 'MarkAsReadRequest'])->name('investigator.notification.read');
 
     // INVESTIGATOR ACCOUNT ROUTE
-    Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');
-    Route::post('/investigator/accounts/create', [AccountController::class, 'CreateAccountRequest'])->name('investigator.account.create');
+
     Route::put('/investigator/accounts/{investigator}/update', [AccountController::class, 'UpdateAccountRequest'])->name('investigator.account.update');
     Route::delete('/investigator/accounts/{investigator}/delete', [AccountController::class, 'DeleteAccountRequest'])->name('investigator.account.delete');
 
@@ -89,3 +88,5 @@ Route::middleware('investigator.auth')->group(function () {
     // INVESTIGATOR AUDIT LOGS ROUTE
     Route::get('/investigator/logs', [AuditLogsController::class, 'LogsPage'])->name('investigator.logs.page');
 });
+    Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');
+    Route::post('/investigator/accounts/create', [AccountController::class, 'CreateAccountRequest'])->name('investigator.account.create');

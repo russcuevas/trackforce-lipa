@@ -161,28 +161,45 @@
 
             $completedAt = in_array($statusLower, ['resolved', 'completed'], true) ? $incident->time_completed : null;
 
-            $caseHistory = [
-                [
-                    'label' => 'Incident Reported',
-                    'timestamp' => $reportedAt,
-                    'color' => 'bg-tf-red',
-                ],
-                [
-                    'label' => 'Case Accepted',
-                    'timestamp' => $acceptedAt,
-                    'color' => 'bg-tf-blue',
-                ],
-                [
-                    'label' => 'Under Investigation',
-                    'timestamp' => $underInvestigationAt,
-                    'color' => 'bg-yellow-400',
-                ],
-                [
-                    'label' => 'Case Completed',
-                    'timestamp' => $completedAt,
-                    'color' => 'bg-emerald-500',
-                ],
-            ];
+            if ($statusLower === 'declined') {
+                $declinedAt = $incident->time_declined ?? $incident->time_documented ?? $incident->updated_at ?? null;
+
+                $caseHistory = [
+                    [
+                        'label' => 'Incident Reported',
+                        'timestamp' => $reportedAt,
+                        'color' => 'bg-tf-red',
+                    ],
+                    [
+                        'label' => 'Case Declined',
+                        'timestamp' => $declinedAt,
+                        'color' => 'bg-gray-200',
+                    ],
+                ];
+            } else {
+                $caseHistory = [
+                    [
+                        'label' => 'Incident Reported',
+                        'timestamp' => $reportedAt,
+                        'color' => 'bg-tf-red',
+                    ],
+                    [
+                        'label' => 'Case Accepted',
+                        'timestamp' => $acceptedAt,
+                        'color' => 'bg-tf-blue',
+                    ],
+                    [
+                        'label' => 'Under Investigation',
+                        'timestamp' => $underInvestigationAt,
+                        'color' => 'bg-yellow-400',
+                    ],
+                    [
+                        'label' => 'Case Completed',
+                        'timestamp' => $completedAt,
+                        'color' => 'bg-emerald-500',
+                    ],
+                ];
+            }
 
             $partyAvatarImage =
                 'https://static.vecteezy.com/system/resources/previews/019/879/186/original/user-icon-on-transparent-background-free-png.png';

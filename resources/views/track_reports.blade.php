@@ -125,18 +125,33 @@
         }
 
         .status-badge-pending {
-            background-color: #fee2e2;
-            color: #991b1b;
+            background-color: #fff4f4;
+            color: #9b1d1d;
+            box-shadow: 0 6px 18px rgba(203, 58, 70, 0.06);
         }
 
         .status-badge-investigation {
-            background-color: #fef9c3;
-            color: #854d0e;
+            background-color: #fffbe6;
+            color: #7a4a0b;
+            box-shadow: 0 6px 18px rgba(200, 170, 50, 0.06);
         }
 
         .status-badge-resolved {
-            background-color: #dcfce7;
-            color: #166534;
+            background-color: #ecfdf5;
+            color: #14532d;
+            box-shadow: 0 6px 18px rgba(52, 211, 153, 0.06);
+        }
+
+        .result-header {
+            position: relative;
+            background: #ffffff;
+        }
+
+        .result-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            box-shadow: 0 8px 30px rgba(11, 61, 145, 0.06);
         }
 
         .nav-link {
@@ -174,21 +189,42 @@
         }
 
         .interactive-panel {
-            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease,
-                background-color 0.35s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease,
+                background-color 0.25s ease;
         }
 
         .interactive-panel:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 24px 50px -26px rgba(11, 61, 145, 0.3);
+            transform: translateY(-6px);
+            box-shadow: 0 18px 40px -12px rgba(11, 61, 145, 0.12);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2.25rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.625rem;
+            top: 0.25rem;
+            bottom: 0.25rem;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(203, 213, 225, 0), rgba(203, 213, 225, 1) 40%, rgba(203, 213, 225, 0));
+            border-radius: 2px;
         }
 
         .timeline-step {
-            transition: transform 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.22s ease, opacity 0.22s ease;
+            padding-left: 0.75rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 1.25rem;
         }
 
         .timeline-step:hover {
-            transform: translateX(6px);
+            transform: translateX(4px);
         }
 
         .lift-button {
@@ -330,6 +366,7 @@
     <main class="flex-1 flex flex-col items-center py-12 px-6">
         @php
             $normalizedStatus = strtolower((string) ($incident->status ?? 'pending'));
+            $isDeclined = $normalizedStatus === 'declined';
             $isPendingReview = in_array($normalizedStatus, ['pending', 'pending review'], true);
             $isAccepted = $normalizedStatus === 'accepted';
             $isResolved = in_array($normalizedStatus, ['resolved', 'completed', 'closed'], true);
@@ -346,6 +383,8 @@
                 $statusBadgeClass = 'status-badge-investigation';
             } elseif ($isAccepted) {
                 $statusBadgeClass = 'bg-blue-100 text-blue-700';
+            } elseif ($isDeclined) {
+                $statusBadgeClass = 'status-badge-pending';
             } else {
                 $statusBadgeClass = 'status-badge-pending';
             }
@@ -393,14 +432,14 @@
             data-reveal-delay="2">
             <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden interactive-panel">
 
-                <div class="bg-gray-50 p-6 border-b flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Report ID</p>
-                        <h2 class="text-xl font-black text-tf-blue" id="resID">{{ $incident->report_number ?? '' }}
-                        </h2>
+                <div class="result-header bg-gray-50 p-6 border-b">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Report ID</p>
+                            <h2 class="text-xl font-black text-tf-blue" id="resID">{{ $incident->report_number ?? '' }}</h2>
+                        </div>
                     </div>
-                    <span id="resStatusBadge"
-                        class="{{ $statusBadgeClass }} px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-tighter">
+                    <span id="resStatusBadge" class="result-badge {{ $statusBadgeClass }} px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-tighter">
                         {{ $statusLabel }}
                     </span>
                 </div>
@@ -426,10 +465,9 @@
                         </div>
                     </div>
 
-                    <div
-                        class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
+                    <div class="timeline">
 
-                        <div class="relative flex items-center justify-between md:justify-start timeline-step">
+                        <div class="relative flex items-center timeline-step">
                             <div
                                 class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-tf-blue text-white shadow shrink-0 z-10">
                                 <i class="fa-solid fa-check text-xs"></i>
@@ -441,8 +479,21 @@
                             </div>
                         </div>
 
+                        @if ($isDeclined)
+                            <div class="relative flex items-center timeline-step">
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-gray-200 text-gray-700 shadow shrink-0 z-10">
+                                    <i class="fa-solid fa-circle-xmark text-xs"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <p class="text-sm font-black text-gray-700">Declined</p>
+                                    <p class="text-xs text-gray-500">This report has been declined.</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        @unless($isDeclined)
                         <div
-                            class="relative flex items-center justify-between md:justify-start timeline-step {{ $pendingReviewComplete ? '' : 'opacity-30' }}">
+                            class="relative flex items-center timeline-step {{ $pendingReviewComplete ? '' : 'opacity-30' }}">
                             <div
                                 class="flex items-center justify-center w-10 h-10 rounded-full border border-white {{ $pendingReviewComplete ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-500' }} shadow shrink-0 z-10">
                                 <i
@@ -461,9 +512,9 @@
                                 </p>
                             </div>
                         </div>
-
+                        
                         <div
-                            class="relative flex items-center justify-between md:justify-start timeline-step {{ $assignedStepComplete ? '' : 'opacity-30' }}">
+                            class="relative flex items-center timeline-step {{ $assignedStepComplete ? '' : 'opacity-30' }}">
                             <div
                                 class="flex items-center justify-center w-10 h-10 rounded-full border border-white {{ $assignedStepComplete ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-500' }} shadow shrink-0 z-10">
                                 <i
@@ -487,7 +538,7 @@
                         </div>
 
                         <div
-                            class="relative flex items-center justify-between md:justify-start timeline-step {{ $investigationStepComplete ? '' : 'opacity-30' }}">
+                            class="relative flex items-center timeline-step {{ $investigationStepComplete ? '' : 'opacity-30' }}">
                             <div
                                 class="flex items-center justify-center w-10 h-10 rounded-full border border-white {{ $investigationStepComplete ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-500' }} shadow shrink-0 z-10">
                                 <i
@@ -510,14 +561,14 @@
                         </div>
 
                         <div
-                            class="relative flex items-center justify-between md:justify-start timeline-step {{ $isResolved ? '' : 'opacity-30' }}">
+                            class="relative flex items-center timeline-step {{ $isResolved ? '' : 'opacity-30' }}">
                             <div
-                                class="flex items-center justify-center w-10 h-10 rounded-full border border-white {{ $isResolved ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500' }} shadow shrink-0 z-10">
+                                class="flex items-center justify-center w-12 h-12 rounded-full border-2 border-white {{ $isResolved ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500' }} shadow-lg shrink-0 z-10">
                                 <i
-                                    class="fa-solid {{ $isResolved ? 'fa-flag-checkered text-xs' : 'fa-circle text-[6px]' }}"></i>
+                                    class="fa-solid {{ $isResolved ? 'fa-flag-checkered text-base' : 'fa-circle text-[6px]' }}"></i>
                             </div>
                             <div class="ml-4 flex-1">
-                                <p class="text-sm font-black {{ $isResolved ? 'text-tf-blue' : 'text-gray-400' }}">
+                                <p class="text-sm font-black {{ $isResolved ? 'text-emerald-700' : 'text-gray-400' }}">
                                     Completed</p>
                                 <p class="text-xs {{ $isResolved ? 'text-gray-500' : 'text-gray-400' }}">
                                     @if ($isResolved)
@@ -529,6 +580,7 @@
                                 </p>
                             </div>
                         </div>
+                        @endunless
 
                     </div>
                 </div>
