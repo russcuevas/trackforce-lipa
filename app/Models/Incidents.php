@@ -37,4 +37,9 @@ class Incidents extends Model
         // Assignment
         'assigned_investigator_id',
     ];
+
+    public function notifications()
+    {
+        return $this->hasMany(InvestigatorNotification::class, 'incident_id');
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\InvestigatorNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -172,7 +173,7 @@ class ReportController extends Controller
         }
 
         $incident = DB::table('incidents')
-            ->select('id', 'otp', 'is_verified')
+            ->select('id', 'report_number', 'incident_type', 'location_name', 'otp', 'is_verified')
             ->where('report_number', $request->report_number)
             ->where('reporter_email', $request->reporter_email)
             ->first();
@@ -223,6 +224,15 @@ class ReportController extends Controller
                 'otp' => '',
                 'updated_at' => now(),
             ]);
+
+        InvestigatorNotification::notifyActiveInvestigators([
+            'incident_id' => $incident->id,
+            'type' => 'report',
+            'priority' => 'high',
+            'title' => 'New Verified Incident Report',
+            'message' => 'Report ' . $incident->report_number . ' (' . ($incident->incident_type ?? 'Incident') . ') at ' . ($incident->location_name ?? 'Unknown location') . ' has been OTP verified and is ready for investigator action.',
+            'action_url' => route('investigator.documentation.print.report.page', ['incident' => $incident->id]),
+        ]);
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

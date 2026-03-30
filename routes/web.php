@@ -7,6 +7,7 @@ use App\Http\Controllers\investigator\AuditLogsController;
 use App\Http\Controllers\investigator\DashboardController;
 use App\Http\Controllers\investigator\DocumentationController;
 use App\Http\Controllers\investigator\IncidentReportController;
+use App\Http\Controllers\investigator\NotificationController;
 use App\Http\Controllers\investigator\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TrackCaseController;
@@ -47,6 +48,12 @@ Route::middleware('investigator.auth')->group(function () {
     Route::get('/investigator/profile', [ProfileController::class, 'ProfilePage'])->name('investigator.profile.page');
     Route::put('/investigator/profile/email', [ProfileController::class, 'UpdateEmailRequest'])->name('investigator.profile.email.update');
     Route::put('/investigator/profile/password', [ProfileController::class, 'UpdatePasswordRequest'])->name('investigator.profile.password.update');
+
+    // INVESTIGATOR NOTIFICATION ROUTE
+    Route::get('/investigator/notifications', [NotificationController::class, 'NotificationPage'])->name('investigator.notification.page');
+    Route::get('/investigator/notifications/realtime', [NotificationController::class, 'RealtimeDataRequest'])->name('investigator.notification.realtime');
+    Route::patch('/investigator/notifications/read-all', [NotificationController::class, 'MarkAllAsReadRequest'])->name('investigator.notification.read.all');
+    Route::patch('/investigator/notifications/{notification}/read', [NotificationController::class, 'MarkAsReadRequest'])->name('investigator.notification.read');
 
     // INVESTIGATOR ACCOUNT ROUTE
     Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');

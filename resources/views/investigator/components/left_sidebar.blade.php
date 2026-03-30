@@ -19,6 +19,21 @@
             <span class="hidden lg:block">Accounts</span>
         </a>
 
+        <!-- Notifications -->
+        {{-- <a href="{{ route('investigator.notification.page') }}"
+            class="flex items-center gap-4 p-3 rounded-lg group
+            {{ request()->routeIs('investigator.notification.*') ? 'nav-active text-white' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
+            <i
+                class="fa-solid fa-bell {{ request()->routeIs('investigator.notification.*') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
+            <span class="hidden lg:block">Notifications</span>
+            @if (($investigatorNotificationUnreadCount ?? 0) > 0)
+                <span
+                    class="hidden lg:inline-flex ml-auto min-w-[1.5rem] h-6 px-2 items-center justify-center rounded-full bg-tf-red text-white text-[11px] font-bold">
+                    {{ $investigatorNotificationUnreadCount > 99 ? '99+' : $investigatorNotificationUnreadCount }}
+                </span>
+            @endif
+        </a> --}}
+
         <!-- Documentations -->
         <a href="{{ route('investigator.documentation.page') }}"
             class="flex items-center gap-4 p-3 rounded-lg group

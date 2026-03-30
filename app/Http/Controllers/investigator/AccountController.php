@@ -4,7 +4,9 @@ namespace App\Http\Controllers\investigator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Investigator;
+use App\Models\InvestigatorNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -45,6 +47,26 @@ class AccountController extends Controller
 
         $investigator = Investigator::create($validated);
         $investigator->refresh();
+
+        $actor = Auth::guard('investigator')->user();
+
+        InvestigatorNotification::notifyActiveInvestigators([
+            'created_by_investigator_id' => $actor?->id,
+            'type' => 'system',
+            'priority' => 'medium',
+            'title' => 'New Investigator Account Created',
+            'message' => $investigator->full_name . ' (Badge #' . $investigator->badge_number . ') was added as an investigator account.',
+            'action_url' => route('investigator.account.page'),
+        ], [$investigator->id]);
+
+        InvestigatorNotification::notifyInvestigator($investigator->id, [
+            'created_by_investigator_id' => $actor?->id,
+            'type' => 'system',
+            'priority' => 'medium',
+            'title' => 'Welcome to TrackForce Lipa',
+            'message' => 'Your investigator account is now active. Review your profile details and keep your credentials secure.',
+            'action_url' => route('investigator.profile.page'),
+        ]);
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
@@ -97,6 +119,26 @@ class AccountController extends Controller
 
         $investigator->update($validated);
 
+        $actor = Auth::guard('investigator')->user();
+
+        InvestigatorNotification::notifyInvestigator($investigator->id, [
+            'created_by_investigator_id' => $actor?->id,
+            'type' => 'system',
+            'priority' => 'medium',
+            'title' => 'Your Account Details Were Updated',
+            'message' => 'Your investigator account information was updated. Current status: ' . strtoupper((string) $investigator->status) . '.',
+            'action_url' => route('investigator.profile.page'),
+        ]);
+
+        InvestigatorNotification::notifyActiveInvestigators([
+            'created_by_investigator_id' => $actor?->id,
+            'type' => 'system',
+            'priority' => 'low',
+            'title' => 'Investigator Account Updated',
+            'message' => $investigator->full_name . ' (Badge #' . $investigator->badge_number . ') account details were updated.',
+            'action_url' => route('investigator.account.page'),
+        ], [$investigator->id]);
+
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'message' => 'Investigator account updated successfully!',
@@ -110,11 +152,25 @@ class AccountController extends Controller
 
     public function DeleteAccountRequest(Request $request, Investigator $investigator)
     {
+        $actor = Auth::guard('investigator')->user();
+        $deletedInvestigatorId = $investigator->id;
+        $deletedFullName = $investigator->full_name;
+        $deletedBadge = $investigator->badge_number;
+
         if ($investigator->profile_image) {
             Storage::disk('public')->delete($investigator->profile_image);
         }
 
         $investigator->delete();
+
+        InvestigatorNotification::notifyActiveInvestigators([
+            'created_by_investigator_id' => $actor?->id,
+            'type' => 'system',
+            'priority' => 'high',
+            'title' => 'Investigator Account Deleted',
+            'message' => $deletedFullName . ' (Badge #' . $deletedBadge . ') account has been deleted.',
+            'action_url' => route('investigator.account.page'),
+        ], [$deletedInvestigatorId]);
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([

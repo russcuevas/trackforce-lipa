@@ -22,4 +22,14 @@ class Investigator extends Authenticatable
     protected $hidden = [
         'password',
     ];
+
+    public function notifications()
+    {
+        return $this->hasMany(InvestigatorNotification::class, 'investigator_id');
+    }
+
+    public function createdNotifications()
+    {
+        return $this->hasMany(InvestigatorNotification::class, 'created_by_investigator_id');
+    }
 }
