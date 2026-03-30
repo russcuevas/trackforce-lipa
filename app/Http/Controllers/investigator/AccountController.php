@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\investigator;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditTrailLog;
 use App\Models\Investigator;
 use App\Models\InvestigatorNotification;
 use Illuminate\Http\Request;
@@ -66,6 +67,12 @@ class AccountController extends Controller
             'title' => 'Welcome to TrackForce Lipa',
             'message' => 'Your investigator account is now active. Review your profile details and keep your credentials secure.',
             'action_url' => route('investigator.profile.page'),
+        ]);
+
+        AuditTrailLog::record([
+            'investigator_id' => $actor?->id,
+            'action_type' => 'account_create',
+            'action_performed' => 'Created investigator account for ' . $investigator->full_name . ' (Badge #' . $investigator->badge_number . ').',
         ]);
 
         if ($request->ajax() || $request->expectsJson()) {
@@ -139,6 +146,12 @@ class AccountController extends Controller
             'action_url' => route('investigator.account.page'),
         ], [$investigator->id]);
 
+        AuditTrailLog::record([
+            'investigator_id' => $actor?->id,
+            'action_type' => 'account_update',
+            'action_performed' => 'Updated investigator account for ' . $investigator->full_name . ' (Badge #' . $investigator->badge_number . ').',
+        ]);
+
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'message' => 'Investigator account updated successfully!',
@@ -171,6 +184,12 @@ class AccountController extends Controller
             'message' => $deletedFullName . ' (Badge #' . $deletedBadge . ') account has been deleted.',
             'action_url' => route('investigator.account.page'),
         ], [$deletedInvestigatorId]);
+
+        AuditTrailLog::record([
+            'investigator_id' => $actor?->id,
+            'action_type' => 'account_delete',
+            'action_performed' => 'Deleted investigator account for ' . $deletedFullName . ' (Badge #' . $deletedBadge . ').',
+        ]);
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([

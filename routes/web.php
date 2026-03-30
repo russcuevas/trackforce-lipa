@@ -71,6 +71,7 @@ Route::middleware('investigator.auth')->group(function () {
 
     // INVESTIGATOR INCIDENTS ROUTE
     Route::get('/investigator/incidents/reports', [IncidentReportController::class, 'IncidentReportPage'])->name('investigator.incident.report.page');
+    Route::get('/investigator/incidents/reports/data', [IncidentReportController::class, 'IncidentReportDataRequest'])->name('investigator.incident.report.data');
     Route::post('/investigator/incidents/reports/create', [IncidentReportController::class, 'CreateIncidentRequest'])->name('investigator.incident.report.create');
     Route::patch('/investigator/incidents/{incident}/status', [IncidentReportController::class, 'UpdateIncidentStatusRequest'])
         ->whereNumber('incident')

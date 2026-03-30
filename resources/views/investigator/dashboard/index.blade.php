@@ -252,7 +252,7 @@
             </section>
 
             {{-- Stat Cards --}}
-            <section class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
                     <p class="text-xs uppercase font-bold text-gray-500 mb-1">Total Incidents</p>
                     <div class="flex items-end justify-between">
@@ -270,6 +270,22 @@
                     </div>
                 </div>
                 <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
+                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Declined</p>
+                    <div class="flex items-end justify-between">
+                        <h2 id="declinedValue" class="text-2xl md:text-3xl font-black">
+                            {{ number_format($declinedCount) }}</h2>
+                        <i class="fa-solid fa-circle-xmark text-red-500 text-lg md:text-xl"></i>
+                    </div>
+                </div>
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
+                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Pending Review</p>
+                    <div class="flex items-end justify-between">
+                        <h2 id="pendingReviewValue" class="text-2xl md:text-3xl font-black">
+                            {{ number_format($pendingReviewCount) }}</h2>
+                        <i class="fa-solid fa-triangle-exclamation text-red-500 text-lg md:text-xl"></i>
+                    </div>
+                </div>
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
                     <p class="text-xs uppercase font-bold text-gray-500 mb-1">Under Investigation</p>
                     <div class="flex items-end justify-between">
                         <h2 id="underInvestigationValue" class="text-2xl md:text-3xl font-black">
@@ -283,14 +299,6 @@
                         <h2 id="resolvedTodayValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($resolvedTodayCount) }}</h2>
                         <i class="fa-solid fa-check-double text-red-500 text-lg md:text-xl"></i>
-                    </div>
-                </div>
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
-                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Pending Review</p>
-                    <div class="flex items-end justify-between">
-                        <h2 id="pendingReviewValue" class="text-2xl md:text-3xl font-black">
-                            {{ number_format($pendingReviewCount) }}</h2>
-                        <i class="fa-solid fa-triangle-exclamation text-red-500 text-lg md:text-xl"></i>
                     </div>
                 </div>
             </section>
@@ -367,7 +375,8 @@
                                     $badgeClass = 'status-badge-pending';
                                 }
                             @endphp
-                            <div class="flex gap-4 p-3 recent-item hover:bg-gray-50 rounded-lg border-b border-gray-50">
+                            <div
+                                class="flex gap-4 p-3 recent-item hover:bg-gray-50 rounded-lg border-b border-gray-50">
                                 <div class="w-2 h-12 rounded-full {{ $lineClass }}"></div>
                                 <div class="flex-1">
                                     <p class="text-xs text-gray-500 font-bold uppercase">Incident
@@ -968,6 +977,7 @@
         function updateStats(data) {
             document.getElementById('totalIncidentsValue').textContent = numberFormatter.format(data.total_incidents || 0);
             document.getElementById('acceptedValue').textContent = numberFormatter.format(data.accepted_count || 0);
+            document.getElementById('declinedValue').textContent = numberFormatter.format(data.declined_count || 0);
             document.getElementById('underInvestigationValue').textContent = numberFormatter.format(data
                 .under_investigation_count || 0);
             document.getElementById('resolvedTodayValue').textContent = numberFormatter.format(data.resolved_today_count ||

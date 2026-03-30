@@ -60,6 +60,22 @@
         @include('investigator.components.left_sidebar')
 
         <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+            @php
+                $actionIcons = [
+                    'incident_status' => 'fa-circle-check text-green-500',
+                    'incident_update' => 'fa-pen text-yellow-500',
+                    'incident_create' => 'fa-file-circle-plus text-tf-blue',
+                    'account_create' => 'fa-user-plus text-tf-blue',
+                    'account_update' => 'fa-user-pen text-yellow-500',
+                    'account_delete' => 'fa-user-xmark text-red-500',
+                    'profile_update' => 'fa-id-card text-tf-blue',
+                    'password_change' => 'fa-key text-red-500',
+                    'public_report' => 'fa-triangle-exclamation text-yellow-500',
+                    'public_report_verify' => 'fa-badge-check text-green-500',
+                    'auth_login' => 'fa-right-to-bracket text-green-500',
+                    'auth_logout' => 'fa-right-from-bracket text-gray-500',
+                ];
+            @endphp
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 class="text-2xl font-black text-tf-blue uppercase tracking-tight">Audit Trail Logs</h1>
@@ -75,67 +91,65 @@
                             <thead class="bg-gray-50 text-tf-blue uppercase text-[11px] font-black">
                                 <tr>
                                     <th class="py-4 px-4 text-left">Log ID</th>
-                                    <th class="py-4 px-4 text-left">Incident Ref</th>
+                                    <th class="py-4 px-4 text-left">Ref</th>
                                     <th class="py-4 px-4 text-left">Investigator</th>
                                     <th class="py-4 px-4 text-left">Action Performed</th>
                                     <th class="py-4 px-4 text-left">Timestamp</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4 text-gray-400 font-mono">#LOG-8821</td>
-                                    <td class="py-4 px-4">
-                                        <span
-                                            class="bg-blue-50 text-tf-blue px-2 py-1 rounded font-bold text-xs border border-blue-100">
-                                            INC-2026-0045
-                                        </span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex items-center gap-2">
-                                            <div
-                                                class="h-6 w-6 rounded-full bg-tf-blue text-white flex items-center justify-center text-[10px] font-bold">
-                                                IA</div>
-                                            <span class="font-medium text-gray-700">Investigator Alpha</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex items-center gap-2">
-                                            <i class="fa-solid fa-circle-check text-green-500 text-[10px]"></i>
-                                            <span class="text-gray-600">Updated status to <strong
-                                                    class="text-green-700 uppercase text-[11px]">Solved</strong></span>
-                                        </div>
-                                    </td>
-                                    <td class="py-4 px-4 text-gray-500 text-xs">
-                                        March 26, 2026 | 10:45 AM
-                                    </td>
-                                </tr>
-
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4 text-gray-400 font-mono">#LOG-8819</td>
-                                    <td class="py-4 px-4">
-                                        <span
-                                            class="bg-gray-50 text-gray-500 px-2 py-1 rounded font-bold text-xs border border-gray-200">
-                                            INC-2026-0032
-                                        </span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex items-center gap-2">
-                                            <div
-                                                class="h-6 w-6 rounded-full bg-yellow-500 text-white flex items-center justify-center text-[10px] font-bold">
-                                                RC</div>
-                                            <span class="font-medium text-gray-700">Russel Cuevas</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex items-center gap-2">
-                                            <i class="fa-solid fa-pen text-tf-red text-[10px]"></i>
-                                            <span class="text-gray-600">Modified Narrative Description</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-4 px-4 text-gray-500 text-xs">
-                                        March 25, 2026 | 02:15 PM
-                                    </td>
-                                </tr>
+                                @forelse ($logs as $log)
+                                    @php
+                                        $incidentReference = $log->incident?->report_number;
+                                        $investigatorName = $log->investigator?->full_name;
+                                        $initials = collect(explode(' ', (string) $investigatorName))
+                                            ->filter()
+                                            ->take(2)
+                                            ->map(fn($part) => strtoupper(substr($part, 0, 1)))
+                                            ->implode('');
+                                        $iconClass =
+                                            $actionIcons[$log->action_type] ?? 'fa-clock-rotate-left text-gray-500';
+                                    @endphp
+                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                        <td class="py-4 px-4 text-gray-400 font-mono">#LOG-{{ $log->id }}</td>
+                                        <td class="py-4 px-4">
+                                            @if ($incidentReference)
+                                                <span
+                                                    class="bg-blue-50 text-tf-blue px-2 py-1 rounded font-bold text-xs border border-blue-100">
+                                                    {{ $incidentReference }}
+                                                </span>
+                                            @else
+                                                <span
+                                                    class="bg-gray-50 text-gray-500 px-2 py-1 rounded font-bold text-xs border border-gray-200">
+                                                    SYSTEM
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="h-6 w-6 rounded-full bg-tf-blue text-white flex items-center justify-center text-[10px] font-bold">
+                                                    {{ $initials !== '' ? $initials : 'SY' }}</div>
+                                                <span
+                                                    class="font-medium text-gray-700">{{ $investigatorName ?: 'System / Public User' }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <i class="fa-solid {{ $iconClass }} text-[10px]"></i>
+                                                <span class="text-gray-600">{{ $log->action_performed }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-500 text-xs">
+                                            {{ $log->created_at ? $log->created_at->format('F d, Y | h:i A') : 'N/A' }}
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="py-10 px-4 text-center text-sm text-gray-400">No audit
+                                            logs recorded yet.</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

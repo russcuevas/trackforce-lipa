@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditTrailLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -53,12 +54,27 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        $investigator = Auth::guard('investigator')->user();
+        AuditTrailLog::record([
+            'investigator_id' => $investigator?->id,
+            'action_type' => 'auth_login',
+            'action_performed' => 'Logged in to the investigator portal.',
+        ]);
+
         return redirect()->intended(route('investigator.dashboard.page'))
             ->with('success', 'You have logged in successfully.');
     }
 
     public function LogoutRequest(Request $request)
     {
+        $investigator = Auth::guard('investigator')->user();
+
+        AuditTrailLog::record([
+            'investigator_id' => $investigator?->id,
+            'action_type' => 'auth_logout',
+            'action_performed' => 'Logged out from the investigator portal.',
+        ]);
+
         Auth::guard('investigator')->logout();
 
         $request->session()->invalidate();

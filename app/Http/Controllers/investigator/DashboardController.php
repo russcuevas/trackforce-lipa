@@ -24,6 +24,7 @@ class DashboardController extends Controller
         return response()->json([
             'total_incidents' => $data['totalIncidents'],
             'accepted_count' => $data['acceptedCount'],
+            'declined_count' => $data['declinedCount'],
             'under_investigation_count' => $data['underInvestigationCount'],
             'resolved_today_count' => $data['resolvedTodayCount'],
             'pending_review_count' => $data['pendingReviewCount'],
@@ -104,6 +105,12 @@ class DashboardController extends Controller
             ->where(DB::raw('LOWER(COALESCE(status, ""))'), '=', 'accepted')
             ->count();
 
+        $declinedCount = DB::table('incidents')
+            ->where('is_verified', 1)
+            ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear))
+            ->where(DB::raw('LOWER(COALESCE(status, ""))'), '=', 'declined')
+            ->count();
+
         $resolvedTodayCount = DB::table('incidents')
             ->where('is_verified', 1)
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear))
@@ -133,6 +140,10 @@ class DashboardController extends Controller
         $mapIncidents = DB::table('incidents')
             ->where('is_verified', 1)
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear))
+            ->where(function ($query) {
+                $query->whereNull('status')
+                    ->orWhere(DB::raw('LOWER(status)'), '!=', 'declined');
+            })
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->select('report_number', 'incident_type', 'location_name', 'status', 'latitude', 'longitude')
@@ -154,6 +165,10 @@ class DashboardController extends Controller
             ->select('location_name', DB::raw('COUNT(*) as total_incidents'))
             ->where('is_verified', 1)
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear))
+            ->where(function ($query) {
+                $query->whereNull('status')
+                    ->orWhere(DB::raw('LOWER(status)'), '!=', 'declined');
+            })
             ->whereNotNull('location_name')
             ->where('location_name', '!=', '')
             ->groupBy('location_name')
@@ -164,6 +179,10 @@ class DashboardController extends Controller
         $ageBuckets = DB::table('involved_parties')
             ->join('incidents', 'incidents.id', '=', 'involved_parties.incident_id')
             ->where('incidents.is_verified', 1)
+            ->where(function ($query) {
+                $query->whereNull('incidents.status')
+                    ->orWhere(DB::raw('LOWER(incidents.status)'), '!=', 'declined');
+            })
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear, 'incidents.created_at'))
             ->selectRaw(
                 'SUM(CASE WHEN age <= 17 THEN 1 ELSE 0 END) as age_17_below,
@@ -177,6 +196,10 @@ class DashboardController extends Controller
         $sexBuckets = DB::table('involved_parties')
             ->join('incidents', 'incidents.id', '=', 'involved_parties.incident_id')
             ->where('incidents.is_verified', 1)
+            ->where(function ($query) {
+                $query->whereNull('incidents.status')
+                    ->orWhere(DB::raw('LOWER(incidents.status)'), '!=', 'declined');
+            })
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear, 'incidents.created_at'))
             ->selectRaw(
                 'SUM(CASE WHEN LOWER(sex) = "male" THEN 1 ELSE 0 END) as male,
@@ -187,6 +210,10 @@ class DashboardController extends Controller
         $incidentTypeCounts = DB::table('incidents')
             ->where('is_verified', 1)
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear))
+            ->where(function ($query) {
+                $query->whereNull('status')
+                    ->orWhere(DB::raw('LOWER(status)'), '!=', 'declined');
+            })
             ->whereNotNull('incident_type')
             ->where('incident_type', '!=', '')
             ->select('incident_type', DB::raw('COUNT(*) as total_count'))
@@ -202,6 +229,10 @@ class DashboardController extends Controller
             ->join('incidents', 'incidents.id', '=', 'vehicles.incident_id')
             ->where('incidents.is_verified', 1)
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear, 'incidents.created_at'))
+            ->where(function ($query) {
+                $query->whereNull('incidents.status')
+                    ->orWhere(DB::raw('LOWER(incidents.status)'), '!=', 'declined');
+            })
             ->whereNotNull('vehicles.vehicle_type')
             ->where('vehicles.vehicle_type', '!=', '')
             ->select('vehicles.vehicle_type', DB::raw('COUNT(*) as total_count'))
@@ -236,6 +267,7 @@ class DashboardController extends Controller
         return [
             'totalIncidents' => $totalIncidents,
             'acceptedCount' => $acceptedCount,
+            'declinedCount' => $declinedCount,
             'underInvestigationCount' => $underInvestigationCount,
             'resolvedTodayCount' => $resolvedTodayCount,
             'pendingReviewCount' => $pendingReviewCount,

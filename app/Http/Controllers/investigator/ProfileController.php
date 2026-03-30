@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\investigator;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditTrailLog;
 use App\Models\Investigator;
 use App\Models\InvestigatorNotification;
 use Illuminate\Http\Request;
@@ -46,6 +47,12 @@ class ProfileController extends Controller
             'action_url' => route('investigator.profile.page'),
         ]);
 
+        AuditTrailLog::record([
+            'investigator_id' => $investigator->id,
+            'action_type' => 'profile_update',
+            'action_performed' => 'Updated personal profile details.',
+        ]);
+
         return back()->with('success', 'Profile details updated successfully.');
     }
 
@@ -77,6 +84,12 @@ class ProfileController extends Controller
             'title' => 'Password Changed',
             'message' => 'Your account password was updated. Keep this password private and do not reuse old credentials.',
             'action_url' => route('investigator.profile.page'),
+        ]);
+
+        AuditTrailLog::record([
+            'investigator_id' => $investigator->id,
+            'action_type' => 'password_change',
+            'action_performed' => 'Changed account password.',
         ]);
 
         return back()->with('success', 'Password changed successfully.');

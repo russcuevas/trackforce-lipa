@@ -5,14 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrackForce Lipa</title>
+    <script>
+        document.documentElement.classList.add('js');
+    </script>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --tf-blue: #0B3D91;
+            --tf-blue-dark: #08275e;
+            --tf-red: #CE1126;
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f8fafc;
+            background:
+                radial-gradient(circle at top left, rgba(206, 17, 38, 0.09), transparent 26%),
+                radial-gradient(circle at top right, rgba(11, 61, 145, 0.11), transparent 30%),
+                #f8fafc;
         }
 
         .bg-tf-blue {
@@ -35,6 +47,81 @@
             background: white;
             border-radius: 2rem;
             box-shadow: 0 20px 50px -10px rgba(11, 61, 145, 0.15);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(18px);
+        }
+
+        .page-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at center, rgba(255, 255, 255, 0.14), transparent 44%),
+                linear-gradient(135deg, rgba(8, 39, 94, 0.98), rgba(11, 61, 145, 0.94) 55%, rgba(206, 17, 38, 0.88));
+            transition: opacity 0.45s ease, visibility 0.45s ease;
+        }
+
+        .page-loader.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-core {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .loader-rings {
+            position: relative;
+            width: 8rem;
+            height: 8rem;
+        }
+
+        .loader-rings span {
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            animation: loaderPulse 1.9s ease-out infinite;
+        }
+
+        .loader-rings span:nth-child(2) {
+            inset: 0.75rem;
+            animation-delay: 0.2s;
+        }
+
+        .loader-rings span:nth-child(3) {
+            inset: 1.5rem;
+            animation-delay: 0.4s;
+        }
+
+        .loader-logo {
+            position: absolute;
+            inset: 50%;
+            width: 3.75rem;
+            height: 3.75rem;
+            object-fit: contain;
+            transform: translate(-50%, -50%);
+            animation: loaderFloat 1.8s ease-in-out infinite;
+        }
+
+        .loader-label {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.34em;
+            text-transform: uppercase;
         }
 
         .status-badge-pending {
@@ -85,12 +172,121 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        .interactive-panel {
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease,
+                background-color 0.35s ease;
+        }
+
+        .interactive-panel:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 24px 50px -26px rgba(11, 61, 145, 0.3);
+        }
+
+        .timeline-step {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .timeline-step:hover {
+            transform: translateX(6px);
+        }
+
+        .lift-button {
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+        }
+
+        .lift-button:hover {
+            transform: translateY(-3px);
+        }
+
+        .js [data-reveal] {
+            opacity: 0;
+            transform: translateY(28px) scale(0.98);
+            transition: opacity 0.75s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .js [data-reveal].is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .js [data-reveal-delay="1"] {
+            transition-delay: 0.08s;
+        }
+
+        .js [data-reveal-delay="2"] {
+            transition-delay: 0.16s;
+        }
+
+        @keyframes loaderPulse {
+            0% {
+                transform: scale(0.86);
+                opacity: 0;
+            }
+
+            40% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.08);
+                opacity: 0;
+            }
+        }
+
+        @keyframes loaderFloat {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%);
+            }
+
+            50% {
+                transform: translate(-50%, calc(-50% - 8px));
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .page-loader,
+            .page-loader *,
+            [data-reveal],
+            .interactive-panel,
+            .timeline-step,
+            .lift-button {
+                animation: none !important;
+                transition: none !important;
+            }
+
+            .js [data-reveal] {
+                opacity: 1;
+                transform: none;
+            }
+        }
     </style>
+    <noscript>
+        <style>
+            #pageLoader {
+                display: none !important;
+            }
+        </style>
+    </noscript>
 </head>
 
 <body class="min-h-screen flex flex-col">
+    <div id="pageLoader" class="page-loader" role="status" aria-live="polite">
+        <div class="loader-core">
+            <div class="loader-rings">
+                <span></span>
+                <span></span>
+                <span></span>
+                <img src="{{ asset('images/logo.png') }}" alt="TrackForce Lipa" class="loader-logo">
+            </div>
+            <p id="pageLoaderLabel" class="loader-label">Tracking live case status</p>
+        </div>
+    </div>
 
-    <nav class="bg-white border-b sticky top-0 z-50">
+    <nav class="glass-nav border-b sticky top-0 z-50" data-reveal>
         <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-12 w-auto object-contain">
@@ -134,6 +330,8 @@
     <main class="flex-1 flex flex-col items-center py-12 px-6">
         @php
             $normalizedStatus = strtolower((string) ($incident->status ?? 'pending'));
+            $isPendingReview = in_array($normalizedStatus, ['pending', 'pending review'], true);
+            $isAccepted = $normalizedStatus === 'accepted';
             $isResolved = in_array($normalizedStatus, ['resolved', 'completed', 'closed'], true);
             $isInvestigation = in_array(
                 $normalizedStatus,
@@ -146,14 +344,18 @@
                 $statusBadgeClass = 'status-badge-resolved';
             } elseif ($isInvestigation) {
                 $statusBadgeClass = 'status-badge-investigation';
+            } elseif ($isAccepted) {
+                $statusBadgeClass = 'bg-blue-100 text-blue-700';
             } else {
                 $statusBadgeClass = 'status-badge-pending';
             }
 
-            $assignedStepComplete = $isInvestigation || $isResolved;
+            $assignedStepComplete = $isAccepted || $isInvestigation || $isResolved;
+            $investigationStepComplete = $isInvestigation || $isResolved;
+            $pendingReviewComplete = $isPendingReview || $assignedStepComplete;
         @endphp
 
-        <div class="max-w-3xl w-full text-center mb-12">
+        <div class="max-w-3xl w-full text-center mb-12" data-reveal data-reveal-delay="1">
             <h1 class="text-3xl md:text-4xl font-black text-tf-blue mb-4 uppercase tracking-tight">Track Your Report
             </h1>
             <p class="text-gray-500 mb-8">Enter your unique tracking ID to view the current status of your submitted
@@ -162,8 +364,8 @@
                 You can find your Tracking ID in your email.
             </p>
 
-            <form action="{{ route('track.case.page') }}" method="GET"
-                class="search-container p-2 flex items-center border border-gray-100">
+            <form action="{{ route('track.case.page') }}" method="GET" data-loader-text="Searching your report"
+                class="search-container p-2 flex items-center border border-gray-100 interactive-panel">
                 <div class="pl-6 text-gray-400">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </div>
@@ -178,7 +380,7 @@
         </div>
 
         @if ($wasSearched && !$incident)
-            <div id="notFoundCard" class="max-w-3xl w-full mb-8">
+            <div id="notFoundCard" class="max-w-3xl w-full mb-8" data-reveal data-reveal-delay="2">
                 <div class="bg-red-50 border border-red-100 rounded-2xl p-5 text-center">
                     <p class="text-sm font-black text-red-700 uppercase">No report found</p>
                     <p class="text-sm text-red-700 mt-2">No case matched tracking ID <span
@@ -187,8 +389,9 @@
             </div>
         @endif
 
-        <div id="resultCard" class="max-w-3xl w-full {{ $incident ? '' : 'hidden' }}">
-            <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+        <div id="resultCard" class="max-w-3xl w-full {{ $incident ? '' : 'hidden' }}" data-reveal
+            data-reveal-delay="2">
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden interactive-panel">
 
                 <div class="bg-gray-50 p-6 border-b flex justify-between items-center">
                     <div>
@@ -217,7 +420,8 @@
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Location</label>
-                            <p class="font-bold text-gray-800"><i class="fa-solid fa-location-dot text-tf-red mr-1"></i>
+                            <p class="font-bold text-gray-800"><i
+                                    class="fa-solid fa-location-dot text-tf-red mr-1"></i>
                                 {{ $incident->location_name ?? 'N/A' }}</p>
                         </div>
                     </div>
@@ -225,20 +429,41 @@
                     <div
                         class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
 
-                        <div class="relative flex items-center justify-between md:justify-start">
+                        <div class="relative flex items-center justify-between md:justify-start timeline-step">
                             <div
                                 class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-tf-blue text-white shadow shrink-0 z-10">
                                 <i class="fa-solid fa-check text-xs"></i>
                             </div>
                             <div class="ml-4 flex-1">
-                                <p class="text-sm font-black text-tf-blue">Report</p>
+                                <p class="text-sm font-black text-tf-blue">Report Submitted</p>
                                 <p class="text-xs text-gray-500">Your report has been successfully logged into the PNP
                                     system.</p>
                             </div>
                         </div>
 
                         <div
-                            class="relative flex items-center justify-between md:justify-start {{ $assignedStepComplete ? '' : 'opacity-30' }}">
+                            class="relative flex items-center justify-between md:justify-start timeline-step {{ $pendingReviewComplete ? '' : 'opacity-30' }}">
+                            <div
+                                class="flex items-center justify-center w-10 h-10 rounded-full border border-white {{ $pendingReviewComplete ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-500' }} shadow shrink-0 z-10">
+                                <i
+                                    class="fa-solid {{ $pendingReviewComplete ? 'fa-clipboard-check text-xs' : 'fa-circle text-[6px]' }}"></i>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <p
+                                    class="text-sm font-black {{ $pendingReviewComplete ? 'text-tf-blue' : 'text-gray-400' }}">
+                                    Pending Review</p>
+                                <p class="text-xs {{ $pendingReviewComplete ? 'text-gray-500' : 'text-gray-400' }}">
+                                    @if ($pendingReviewComplete)
+                                        Your report is queued for investigator review and validation.
+                                    @else
+                                        Waiting for review.
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="relative flex items-center justify-between md:justify-start timeline-step {{ $assignedStepComplete ? '' : 'opacity-30' }}">
                             <div
                                 class="flex items-center justify-center w-10 h-10 rounded-full border border-white {{ $assignedStepComplete ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-500' }} shadow shrink-0 z-10">
                                 <i
@@ -262,21 +487,44 @@
                         </div>
 
                         <div
-                            class="relative flex items-center justify-between md:justify-start {{ $isResolved ? '' : 'opacity-30' }}">
+                            class="relative flex items-center justify-between md:justify-start timeline-step {{ $investigationStepComplete ? '' : 'opacity-30' }}">
+                            <div
+                                class="flex items-center justify-center w-10 h-10 rounded-full border border-white {{ $investigationStepComplete ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-500' }} shadow shrink-0 z-10">
+                                <i
+                                    class="fa-solid {{ $investigationStepComplete ? 'fa-hourglass-half text-xs' : 'fa-circle text-[6px]' }}"></i>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <p
+                                    class="text-sm font-black {{ $investigationStepComplete ? 'text-tf-blue' : 'text-gray-400' }}">
+                                    Under Investigation</p>
+                                <p
+                                    class="text-xs {{ $investigationStepComplete ? 'text-gray-500' : 'text-gray-400' }}">
+                                    @if ($investigationStepComplete)
+                                        The assigned investigator is currently handling this case on-site and gathering
+                                        findings.
+                                    @else
+                                        Waiting for investigation to start.
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="relative flex items-center justify-between md:justify-start timeline-step {{ $isResolved ? '' : 'opacity-30' }}">
                             <div
                                 class="flex items-center justify-center w-10 h-10 rounded-full border border-white {{ $isResolved ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500' }} shadow shrink-0 z-10">
                                 <i
-                                    class="fa-solid {{ $isResolved ? 'fa-check text-xs' : 'fa-circle text-[6px]' }}"></i>
+                                    class="fa-solid {{ $isResolved ? 'fa-flag-checkered text-xs' : 'fa-circle text-[6px]' }}"></i>
                             </div>
                             <div class="ml-4 flex-1">
                                 <p class="text-sm font-black {{ $isResolved ? 'text-tf-blue' : 'text-gray-400' }}">
-                                    Resolution</p>
+                                    Completed</p>
                                 <p class="text-xs {{ $isResolved ? 'text-gray-500' : 'text-gray-400' }}">
                                     @if ($isResolved)
                                         Case resolved on
                                         {{ $incident?->time_completed ? \Illuminate\Support\Carbon::parse($incident->time_completed)->format('F d, Y - h:i A') : 'recorded completion date' }}.
                                     @else
-                                        Pending final review and documentation.
+                                        Waiting for final resolution.
                                     @endif
                                 </p>
                             </div>
@@ -310,10 +558,105 @@
     @endif
     <script>
         (function() {
+            const loader = document.getElementById('pageLoader');
+            const loaderLabel = document.getElementById('pageLoaderLabel');
             const menuButton = document.getElementById('mobileMenuButton');
             const mobileMenu = document.getElementById('mobileMenu');
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            function showPageLoader(message) {
+                if (!loader) {
+                    return;
+                }
+
+                if (message && loaderLabel) {
+                    loaderLabel.textContent = message;
+                }
+
+                loader.classList.remove('is-hidden');
+            }
+
+            function hidePageLoader() {
+                if (!loader) {
+                    return;
+                }
+
+                loader.classList.add('is-hidden');
+            }
+
+            function initRevealAnimations() {
+                const revealElements = document.querySelectorAll('[data-reveal]');
+
+                if (!revealElements.length) {
+                    return;
+                }
+
+                if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+                    revealElements.forEach((element) => element.classList.add('is-visible'));
+                    return;
+                }
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) {
+                            return;
+                        }
+
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.16,
+                    rootMargin: '0px 0px -40px 0px'
+                });
+
+                revealElements.forEach((element) => observer.observe(element));
+            }
+
+            function initPageTransitions() {
+                document.querySelectorAll('a[href]').forEach((link) => {
+                    link.addEventListener('click', (event) => {
+                        const href = link.getAttribute('href');
+
+                        if (!href || href.startsWith('#') || link.target === '_blank' || link
+                            .hasAttribute('download')) {
+                            return;
+                        }
+
+                        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                            return;
+                        }
+
+                        const url = new URL(link.href, window.location.href);
+
+                        if (url.origin !== window.location.origin) {
+                            return;
+                        }
+
+                        showPageLoader(link.dataset.loaderText || 'Opening TrackForce Lipa');
+                    });
+                });
+
+                document.querySelectorAll('form').forEach((form) => {
+                    form.addEventListener('submit', () => {
+                        if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+                            return;
+                        }
+
+                        showPageLoader(form.dataset.loaderText || 'Processing request');
+                    });
+                });
+            }
+
+            window.showPageLoader = showPageLoader;
+            window.hidePageLoader = hidePageLoader;
 
             if (!menuButton || !mobileMenu) {
+                initRevealAnimations();
+                initPageTransitions();
+                window.addEventListener('load', function() {
+                    window.setTimeout(hidePageLoader, prefersReducedMotion ? 0 : 420);
+                });
                 return;
             }
 
@@ -336,6 +679,13 @@
                 if (window.innerWidth >= 768) {
                     setMenuState(false);
                 }
+            });
+
+            initRevealAnimations();
+            initPageTransitions();
+
+            window.addEventListener('load', function() {
+                window.setTimeout(hidePageLoader, prefersReducedMotion ? 0 : 420);
             });
         })();
     </script>

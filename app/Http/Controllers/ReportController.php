@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditTrailLog;
 use App\Models\InvestigatorNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -144,6 +145,12 @@ class ReportController extends Controller
             ], 500);
         }
 
+        AuditTrailLog::record([
+            'incident_id' => $incidentId,
+            'action_type' => 'public_report',
+            'action_performed' => 'Public incident report submitted and waiting for OTP verification.',
+        ]);
+
         // ✅ Return success JSON for AJAX
         return response()->json([
             'success' => true,
@@ -232,6 +239,12 @@ class ReportController extends Controller
             'title' => 'New Verified Incident Report',
             'message' => 'Report ' . $incident->report_number . ' (' . ($incident->incident_type ?? 'Incident') . ') at ' . ($incident->location_name ?? 'Unknown location') . ' has been OTP verified and is ready for investigator action.',
             'action_url' => route('investigator.documentation.print.report.page', ['incident' => $incident->id]),
+        ]);
+
+        AuditTrailLog::record([
+            'incident_id' => $incident->id,
+            'action_type' => 'public_report_verify',
+            'action_performed' => 'Public incident report OTP verified and marked ready for investigator action.',
         ]);
 
         if ($request->expectsJson() || $request->ajax()) {

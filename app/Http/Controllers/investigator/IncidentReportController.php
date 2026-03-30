@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\investigator;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditTrailLog;
 use App\Models\IncidentEvidence;
 use App\Models\Incidents;
+use App\Models\InvestigatorNotification;
 use App\Models\InvolvedParties;
 use App\Models\Vehicles;
 use Illuminate\Http\Request;
@@ -20,7 +22,44 @@ class IncidentReportController extends Controller
             ->latest('created_at')
             ->get();
 
-        $stats = [
+        $stats = $this->buildIncidentStats($incidents);
+
+        return view('investigator.incidents.index', [
+            'incidents' => $incidents,
+            'stats' => $stats,
+        ]);
+    }
+
+    public function IncidentReportDataRequest(Request $request)
+    {
+        $incidents = Incidents::query()
+            ->latest('created_at')
+            ->get();
+
+        return response()->json([
+            'stats' => $this->buildIncidentStats($incidents),
+            'incidents' => $incidents->map(function ($incident) {
+                $reportedAt = $incident->time_reported ?? $incident->created_at;
+
+                return [
+                    'id' => (int) $incident->id,
+                    'report_number' => (string) ($incident->report_number ?? ('INC-' . $incident->id)),
+                    'incident_type' => (string) ($incident->incident_type ?? 'N/A'),
+                    'location_name' => (string) ($incident->location_name ?? 'N/A'),
+                    'status' => (string) ($incident->status ?? 'Pending'),
+                    'reported_at_human' => $reportedAt
+                        ? \Illuminate\Support\Carbon::parse($reportedAt)->diffForHumans()
+                        : 'N/A',
+                    'case_url' => route('investigator.incident.view.case.page', ['incident' => $incident->id]),
+                ];
+            })->values(),
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+    }
+
+    private function buildIncidentStats($incidents): array
+    {
+        return [
             'all' => $incidents->count(),
             'pending' => $incidents->filter(function ($incident) {
                 $status = strtolower(trim((string) $incident->status));
@@ -30,18 +69,18 @@ class IncidentReportController extends Controller
             'accepted' => $incidents->filter(function ($incident) {
                 return strtolower(trim((string) $incident->status)) === 'accepted';
             })->count(),
+            'declined' => $incidents->filter(function ($incident) {
+                return strtolower(trim((string) $incident->status)) === 'declined';
+            })->count(),
             'resolved' => $incidents->filter(function ($incident) {
                 return strtolower(trim((string) $incident->status)) === 'resolved';
             })->count(),
             'under_investigation' => $incidents->filter(function ($incident) {
-                return strtolower(trim((string) $incident->status)) === 'under investigation';
+                $status = strtolower(trim((string) $incident->status));
+
+                return in_array($status, ['under investigation', 'investigating', 'in progress'], true);
             })->count(),
         ];
-
-        return view('investigator.incidents.index', [
-            'incidents' => $incidents,
-            'stats' => $stats,
-        ]);
     }
 
     public function IncidentCaseViewPage(Incidents $incident)
@@ -125,6 +164,75 @@ class IncidentReportController extends Controller
         }
 
         $incident->save();
+
+        $investigator = Auth::guard('investigator')->user();
+        $investigatorName = $investigator ? $investigator->full_name : 'An investigator';
+        $actionUrl = route('investigator.incident.view.case.page', ['incident' => $incident->id]);
+
+        if ($validated['status'] === 'Accepted') {
+            InvestigatorNotification::notifyActiveInvestigators([
+                'incident_id' => $incident->id,
+                'created_by_investigator_id' => $investigator?->id,
+                'type' => 'incident_status',
+                'priority' => 'medium',
+                'title' => 'Case Accepted',
+                'message' => "Case #{$incident->report_number} ({$incident->incident_type}) has been accepted and assigned to {$investigatorName}.",
+                'action_url' => $actionUrl,
+            ], $investigator ? [$investigator->id] : []);
+
+            if ($investigator) {
+                InvestigatorNotification::notifyInvestigator($investigator->id, [
+                    'incident_id' => $incident->id,
+                    'created_by_investigator_id' => $investigator->id,
+                    'type' => 'incident_status',
+                    'priority' => 'low',
+                    'title' => 'Case Assigned to You',
+                    'message' => "You have accepted and been assigned Case #{$incident->report_number} ({$incident->incident_type}).",
+                    'action_url' => $actionUrl,
+                ]);
+            }
+
+            AuditTrailLog::record([
+                'incident_id' => $incident->id,
+                'investigator_id' => $investigator?->id,
+                'action_type' => 'incident_status',
+                'action_performed' => "Accepted case #{$incident->report_number} ({$incident->incident_type}).",
+            ]);
+        } elseif ($validated['status'] === 'Declined') {
+            InvestigatorNotification::notifyActiveInvestigators([
+                'incident_id' => $incident->id,
+                'created_by_investigator_id' => $investigator?->id,
+                'type' => 'incident_status',
+                'priority' => 'medium',
+                'title' => 'Case Declined',
+                'message' => "Case #{$incident->report_number} ({$incident->incident_type}) has been declined by {$investigatorName}.",
+                'action_url' => $actionUrl,
+            ]);
+
+            AuditTrailLog::record([
+                'incident_id' => $incident->id,
+                'investigator_id' => $investigator?->id,
+                'action_type' => 'incident_status',
+                'action_performed' => "Declined case #{$incident->report_number} ({$incident->incident_type}).",
+            ]);
+        } elseif ($validated['status'] === 'Resolved') {
+            InvestigatorNotification::notifyActiveInvestigators([
+                'incident_id' => $incident->id,
+                'created_by_investigator_id' => $investigator?->id,
+                'type' => 'incident_status',
+                'priority' => 'high',
+                'title' => 'Case Resolved',
+                'message' => "Case #{$incident->report_number} ({$incident->incident_type}) has been resolved by {$investigatorName}.",
+                'action_url' => $actionUrl,
+            ]);
+
+            AuditTrailLog::record([
+                'incident_id' => $incident->id,
+                'investigator_id' => $investigator?->id,
+                'action_type' => 'incident_status',
+                'action_performed' => "Resolved case #{$incident->report_number} ({$incident->incident_type}).",
+            ]);
+        }
 
         return redirect()
             ->route('investigator.incident.view.case.page', ['incident' => $incident->id])
@@ -235,6 +343,23 @@ class IncidentReportController extends Controller
                 ]);
             }
         });
+
+        InvestigatorNotification::notifyActiveInvestigators([
+            'incident_id' => $incident->id,
+            'created_by_investigator_id' => $investigator->id,
+            'type' => 'incident_update',
+            'priority' => 'medium',
+            'title' => 'Case Under Investigation',
+            'message' => "Case #{$incident->report_number} ({$incident->incident_type}) has been documented and is now under investigation by {$investigator->full_name}.",
+            'action_url' => route('investigator.incident.view.case.page', ['incident' => $incident->id]),
+        ], [$investigator->id]);
+
+        AuditTrailLog::record([
+            'incident_id' => $incident->id,
+            'investigator_id' => $investigator->id,
+            'action_type' => 'incident_update',
+            'action_performed' => "Updated case details and moved case #{$incident->report_number} to Under Investigation.",
+        ]);
 
         return redirect()
             ->route('investigator.incident.view.case.page', ['incident' => $incident->id])
@@ -417,6 +542,23 @@ class IncidentReportController extends Controller
 
             return $incidentId;
         });
+
+        InvestigatorNotification::notifyActiveInvestigators([
+            'incident_id' => $incidentId,
+            'created_by_investigator_id' => $investigator->id,
+            'type' => 'new_incident',
+            'priority' => 'high',
+            'title' => 'New Incident Logged',
+            'message' => "{$investigator->full_name} has logged a new incident #{$reportNumber} ({$incidentType}) at {$validated['location_name']}.",
+            'action_url' => route('investigator.incident.view.case.page', ['incident' => $incidentId]),
+        ], [$investigator->id]);
+
+        AuditTrailLog::record([
+            'incident_id' => $incidentId,
+            'investigator_id' => $investigator->id,
+            'action_type' => 'incident_create',
+            'action_performed' => "Created new incident report #{$reportNumber} ({$incidentType}).",
+        ]);
 
         return redirect()
             ->route('investigator.incident.report.page')

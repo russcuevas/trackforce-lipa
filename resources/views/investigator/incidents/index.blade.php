@@ -69,33 +69,44 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 <button
                     class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
                     <p class="text-[10px] font-black text-gray-400 uppercase">All Cases</p>
-                    <p class="text-xl font-black text-tf-blue">{{ number_format((int) ($stats['all'] ?? 0)) }}</p>
+                    <p id="allCasesValue" class="text-xl font-black text-tf-blue">
+                        {{ number_format((int) ($stats['all'] ?? 0)) }}</p>
                 </button>
                 <button
                     class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
                     <p class="text-[10px] font-black text-gray-400 uppercase">Pending</p>
-                    <p class="text-xl font-black text-tf-blue">{{ number_format((int) ($stats['pending'] ?? 0)) }}</p>
+                    <p id="pendingCasesValue" class="text-xl font-black text-tf-blue">
+                        {{ number_format((int) ($stats['pending'] ?? 0)) }}</p>
                 </button>
                 <button
                     class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
                     <p class="text-[10px] font-black text-gray-400 uppercase">Accepted</p>
-                    <p class="text-xl font-black text-tf-blue">{{ number_format((int) ($stats['accepted'] ?? 0)) }}
+                    <p id="acceptedCasesValue" class="text-xl font-black text-tf-blue">
+                        {{ number_format((int) ($stats['accepted'] ?? 0)) }}
+                    </p>
+                </button>
+                <button
+                    class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
+                    <p class="text-[10px] font-black text-gray-400 uppercase">Declined</p>
+                    <p id="declinedCasesValue" class="text-xl font-black text-tf-blue">
+                        {{ number_format((int) ($stats['declined'] ?? 0)) }}
                     </p>
                 </button>
                 <button
                     class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
                     <p class="text-[10px] font-black text-gray-400 uppercase">Resolved</p>
-                    <p class="text-xl font-black text-tf-blue">{{ number_format((int) ($stats['resolved'] ?? 0)) }}
+                    <p id="resolvedCasesValue" class="text-xl font-black text-tf-blue">
+                        {{ number_format((int) ($stats['resolved'] ?? 0)) }}
                     </p>
                 </button>
                 <button
                     class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
                     <p class="text-[10px] font-black text-gray-400 uppercase">Under Investigation</p>
-                    <p class="text-xl font-black text-tf-blue">
+                    <p id="underInvestigationCasesValue" class="text-xl font-black text-tf-blue">
                         {{ number_format((int) ($stats['under_investigation'] ?? 0)) }}
                     </p>
                 </button>
@@ -239,8 +250,114 @@
         @endif
     </script>
     <script>
+        const numberFormatter = new Intl.NumberFormat();
+        const incidentReportDataUrl = '{{ route('investigator.incident.report.data') }}';
+        let reportsTable;
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function getStatusMeta(statusRaw) {
+            const statusValue = String(statusRaw || 'Pending').trim().toLowerCase();
+
+            let statusStyles = 'bg-gray-100 text-gray-700';
+            if (['pending', 'pending review'].includes(statusValue)) {
+                statusStyles = 'bg-red-100 text-red-700';
+            } else if (statusValue === 'accepted') {
+                statusStyles = 'bg-blue-100 text-blue-700';
+            } else if (['under investigation', 'investigating', 'in progress'].includes(statusValue)) {
+                statusStyles = 'bg-yellow-100 text-yellow-700';
+            } else if (statusValue === 'declined') {
+                statusStyles = 'bg-gray-200 text-gray-700';
+            } else if (statusValue === 'resolved') {
+                statusStyles = 'bg-green-100 text-green-700';
+            }
+
+            const borderColor = ['pending', 'pending review'].includes(statusValue) ?
+                'border-tf-red' :
+                (statusValue === 'accepted' ?
+                    'border-yellow-500' :
+                    (statusValue === 'resolved' ? 'border-green-500' : 'border-gray-300'));
+
+            return {
+                statusStyles,
+                borderColor,
+            };
+        }
+
+        function updateStats(stats) {
+            const safeStats = stats || {};
+            document.getElementById('allCasesValue').textContent = numberFormatter.format(Number(safeStats.all || 0));
+            document.getElementById('pendingCasesValue').textContent = numberFormatter.format(Number(safeStats.pending ||
+                0));
+            document.getElementById('acceptedCasesValue').textContent = numberFormatter.format(Number(safeStats.accepted ||
+                0));
+            document.getElementById('declinedCasesValue').textContent = numberFormatter.format(Number(safeStats.declined ||
+                0));
+            document.getElementById('resolvedCasesValue').textContent = numberFormatter.format(Number(safeStats.resolved ||
+                0));
+            document.getElementById('underInvestigationCasesValue').textContent = numberFormatter.format(Number(safeStats
+                .under_investigation || 0));
+        }
+
+        function updateReportsTable(incidents) {
+            if (!reportsTable) {
+                return;
+            }
+
+            const rows = (incidents || []).map((incident) => {
+                const meta = getStatusMeta(incident.status);
+                const safeReportNumber = escapeHtml(incident.report_number || `INC-${incident.id || ''}`);
+                const safeType = escapeHtml(incident.incident_type || 'N/A');
+                const safeReportedAt = escapeHtml(incident.reported_at_human || 'N/A');
+                const safeLocation = escapeHtml(incident.location_name || 'N/A');
+                const safeStatus = escapeHtml(incident.status || 'Pending');
+                const safeCaseUrl = escapeHtml(incident.case_url || '#');
+
+                return [
+                    `<div class="py-1 px-0 border-l-4 ${meta.borderColor}"><span class="font-bold text-gray-400">#${safeReportNumber}</span></div>`,
+                    `<p class="font-bold text-gray-700">${safeType}</p><p class="text-[10px] text-gray-400 uppercase">Reported: ${safeReportedAt}</p>`,
+                    `<span class="text-gray-500"><i class="fa-solid fa-location-dot mr-1 text-gray-300"></i>${safeLocation}</span>`,
+                    `<span class="${meta.statusStyles} px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter">${safeStatus}</span>`,
+                    `<div class="flex justify-center"><a href="${safeCaseUrl}" class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95"><i class="fa-solid fa-eye"></i><span class="uppercase tracking-wider">View Case</span></a></div>`,
+                ];
+            });
+
+            reportsTable.clear();
+            if (rows.length > 0) {
+                reportsTable.rows.add(rows);
+            }
+            reportsTable.draw(false);
+        }
+
+        async function refreshIncidentReportsData() {
+            try {
+                const response = await fetch(incidentReportDataUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                updateStats(data.stats || {});
+                updateReportsTable(data.incidents || []);
+            } catch (error) {
+                console.error('Realtime incident refresh failed:', error);
+            }
+        }
+
         $(document).ready(function() {
-            $('#reportsTable').DataTable({
+            reportsTable = $('#reportsTable').DataTable({
                 pageLength: 10,
                 responsive: true,
                 language: {
@@ -248,6 +365,8 @@
                     searchPlaceholder: "Search"
                 }
             });
+
+            setInterval(refreshIncidentReportsData, 8000);
         });
     </script>
     <script>

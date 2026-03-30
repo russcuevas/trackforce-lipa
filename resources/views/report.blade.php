@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrackForce Lipa</title>
+    <script>
+        document.documentElement.classList.add('js');
+    </script>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -24,9 +27,18 @@
         }
     </style>
     <style>
+        :root {
+            --tf-blue: #0B3D91;
+            --tf-blue-dark: #08275e;
+            --tf-red: #CE1126;
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f8fafc;
+            background:
+                radial-gradient(circle at top left, rgba(206, 17, 38, 0.1), transparent 28%),
+                radial-gradient(circle at top right, rgba(11, 61, 145, 0.11), transparent 31%),
+                #f8fafc;
         }
 
         .bg-tf-blue {
@@ -50,6 +62,114 @@
             border-radius: 1.5rem;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(18px);
+        }
+
+        .page-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at center, rgba(255, 255, 255, 0.14), transparent 44%),
+                linear-gradient(135deg, rgba(8, 39, 94, 0.98), rgba(11, 61, 145, 0.94) 55%, rgba(206, 17, 38, 0.88));
+            transition: opacity 0.45s ease, visibility 0.45s ease;
+        }
+
+        .page-loader.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-core {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .loader-rings {
+            position: relative;
+            width: 8rem;
+            height: 8rem;
+        }
+
+        .loader-rings span {
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            animation: loaderPulse 1.9s ease-out infinite;
+        }
+
+        .loader-rings span:nth-child(2) {
+            inset: 0.75rem;
+            animation-delay: 0.2s;
+        }
+
+        .loader-rings span:nth-child(3) {
+            inset: 1.5rem;
+            animation-delay: 0.4s;
+        }
+
+        .loader-logo {
+            position: absolute;
+            inset: 50%;
+            width: 3.75rem;
+            height: 3.75rem;
+            object-fit: contain;
+            transform: translate(-50%, -50%);
+            animation: loaderFloat 1.8s ease-in-out infinite;
+        }
+
+        .loader-label {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.34em;
+            text-transform: uppercase;
+        }
+
+        .report-hero {
+            background: linear-gradient(135deg, rgba(8, 39, 94, 0.96), rgba(11, 61, 145, 0.9));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-hero::before,
+        .report-hero::after {
+            content: '';
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(10px);
+            opacity: 0.3;
+            animation: floatOrb 9s ease-in-out infinite;
+        }
+
+        .report-hero::before {
+            width: 16rem;
+            height: 16rem;
+            right: -4rem;
+            top: -6rem;
+            background: rgba(255, 216, 82, 0.2);
+        }
+
+        .report-hero::after {
+            width: 11rem;
+            height: 11rem;
+            left: -3rem;
+            bottom: -4rem;
+            background: rgba(206, 17, 38, 0.2);
+            animation-delay: -3s;
         }
 
 
@@ -86,12 +206,130 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        .interactive-panel {
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease,
+                background-color 0.35s ease;
+        }
+
+        .interactive-panel:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 26px 60px -34px rgba(11, 61, 145, 0.32);
+        }
+
+        .lift-button {
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+        }
+
+        .lift-button:hover {
+            transform: translateY(-3px);
+        }
+
+        .js [data-reveal] {
+            opacity: 0;
+            transform: translateY(28px) scale(0.98);
+            transition: opacity 0.75s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .js [data-reveal].is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .js [data-reveal-delay="1"] {
+            transition-delay: 0.08s;
+        }
+
+        .js [data-reveal-delay="2"] {
+            transition-delay: 0.16s;
+        }
+
+        .js [data-reveal-delay="3"] {
+            transition-delay: 0.24s;
+        }
+
+        @keyframes loaderPulse {
+            0% {
+                transform: scale(0.86);
+                opacity: 0;
+            }
+
+            40% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.08);
+                opacity: 0;
+            }
+        }
+
+        @keyframes loaderFloat {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%);
+            }
+
+            50% {
+                transform: translate(-50%, calc(-50% - 8px));
+            }
+        }
+
+        @keyframes floatOrb {
+
+            0%,
+            100% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            50% {
+                transform: translate3d(0, 18px, 0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .page-loader,
+            .page-loader *,
+            [data-reveal],
+            .report-hero::before,
+            .report-hero::after,
+            .interactive-panel,
+            .lift-button {
+                animation: none !important;
+                transition: none !important;
+            }
+
+            .js [data-reveal] {
+                opacity: 1;
+                transform: none;
+            }
+        }
     </style>
+    <noscript>
+        <style>
+            #pageLoader {
+                display: none !important;
+            }
+        </style>
+    </noscript>
 </head>
 
 <body>
+    <div id="pageLoader" class="page-loader" role="status" aria-live="polite">
+        <div class="loader-core">
+            <div class="loader-rings">
+                <span></span>
+                <span></span>
+                <span></span>
+                <img src="{{ asset('images/logo.png') }}" alt="TrackForce Lipa" class="loader-logo">
+            </div>
+            <p id="pageLoaderLabel" class="loader-label">Preparing your incident report</p>
+        </div>
+    </div>
 
-    <nav class="bg-white border-b sticky top-0 z-50">
+    <nav class="glass-nav border-b sticky top-0 z-50" data-reveal>
         <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-12 w-auto object-contain">
@@ -134,8 +372,8 @@
         </div>
     </nav>
 
-    <header class="bg-tf-blue py-12 px-6">
-        <div class="max-w-4xl mx-auto text-center">
+    <header class="report-hero py-12 px-6" data-reveal>
+        <div class="max-w-4xl mx-auto text-center relative z-10">
             <h1 class="text-white text-3xl md:text-5xl font-black mb-4">Public Incident Reporting</h1>
             <p class="text-blue-200 text-lg">Report traffic accidents or violations in Lipa City. No account required.
             </p>
@@ -146,7 +384,7 @@
         <form id="reportForm" action="/submit-report" method="POST" enctype="multipart/form-data" class="space-y-8">
             @csrf
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="section-card p-8 mt-5">
+                <div class="section-card p-8 mt-5 interactive-panel" data-reveal data-reveal-delay="1">
                     <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-camera"></i> Evidence
                     </h3>
@@ -170,7 +408,7 @@
                     </div>
                 </div>
 
-                <div class="section-card p-8 mt-5">
+                <div class="section-card p-8 mt-5 interactive-panel" data-reveal data-reveal-delay="2">
                     <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-car"></i> Vehicle Involved
                     </h3>
@@ -207,14 +445,14 @@
                     </div>
 
                     <button type="button" id="addVehicleBtn"
-                        class="mt-4 ml-auto h-11 w-11 bg-tf-blue text-white rounded-xl text-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center"
+                        class="mt-4 ml-auto h-11 w-11 bg-tf-blue text-white rounded-xl text-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center lift-button"
                         aria-label="Add vehicle" title="Add vehicle">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="section-card p-8">
+            <div class="section-card p-8 interactive-panel" data-reveal data-reveal-delay="2">
                 <div class="flex items-center gap-3 mb-6 border-b pb-4">
                     <i class="fa-solid fa-map-location-dot text-tf-red text-xl"></i>
                     <h2 class="font-bold text-gray-800 uppercase tracking-wide">Incident Location</h2>
@@ -303,7 +541,7 @@
             </div>
 
 
-            <div class="section-card p-8">
+            <div class="section-card p-8 interactive-panel" data-reveal data-reveal-delay="3">
                 <div class="flex items-center gap-3 mb-4 border-b pb-4">
                     <i class="fa-solid fa-user-pen text-tf-blue text-xl"></i>
                     <h2 class="font-bold text-gray-800 uppercase tracking-wide">Your Details</h2>
@@ -340,9 +578,9 @@
 
 
 
-            <div class="flex flex-col items-center">
+            <div class="flex flex-col items-center" data-reveal data-reveal-delay="3">
                 <button type="submit"
-                    class="w-full md:w-auto md:px-20 bg-tf-red text-white py-4 rounded-2xl font-black shadow-xl shadow-red-200 hover:bg-red-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                    class="w-full md:w-auto md:px-20 bg-tf-red text-white py-4 rounded-2xl font-black shadow-xl shadow-red-200 hover:bg-red-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 lift-button">
                     SUBMIT TO LIPA PNP <i class="fa-solid fa-paper-plane"></i>
                 </button>
                 <p class="text-[11px] text-gray-400 mt-4 text-center max-w-md">
@@ -414,10 +652,95 @@
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script>
         (function() {
+            const loader = document.getElementById('pageLoader');
+            const loaderLabel = document.getElementById('pageLoaderLabel');
             const menuButton = document.getElementById('mobileMenuButton');
             const mobileMenu = document.getElementById('mobileMenu');
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            function showPageLoader(message) {
+                if (!loader) {
+                    return;
+                }
+
+                if (message && loaderLabel) {
+                    loaderLabel.textContent = message;
+                }
+
+                loader.classList.remove('is-hidden');
+            }
+
+            function hidePageLoader() {
+                if (!loader) {
+                    return;
+                }
+
+                loader.classList.add('is-hidden');
+            }
+
+            function initRevealAnimations() {
+                const revealElements = document.querySelectorAll('[data-reveal]');
+
+                if (!revealElements.length) {
+                    return;
+                }
+
+                if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+                    revealElements.forEach((element) => element.classList.add('is-visible'));
+                    return;
+                }
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) {
+                            return;
+                        }
+
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.16,
+                    rootMargin: '0px 0px -40px 0px'
+                });
+
+                revealElements.forEach((element) => observer.observe(element));
+            }
+
+            function initPageTransitions() {
+                document.querySelectorAll('a[href]').forEach((link) => {
+                    link.addEventListener('click', (event) => {
+                        const href = link.getAttribute('href');
+
+                        if (!href || href.startsWith('#') || link.target === '_blank' || link
+                            .hasAttribute('download')) {
+                            return;
+                        }
+
+                        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                            return;
+                        }
+
+                        const url = new URL(link.href, window.location.href);
+
+                        if (url.origin !== window.location.origin) {
+                            return;
+                        }
+
+                        showPageLoader(link.dataset.loaderText || 'Opening TrackForce Lipa');
+                    });
+                });
+            }
+
+            window.showPageLoader = showPageLoader;
+            window.hidePageLoader = hidePageLoader;
 
             if (!menuButton || !mobileMenu) {
+                initRevealAnimations();
+                window.addEventListener('load', function() {
+                    window.setTimeout(hidePageLoader, prefersReducedMotion ? 0 : 420);
+                });
+                initPageTransitions();
                 return;
             }
 
@@ -440,6 +763,13 @@
                 if (window.innerWidth >= 768) {
                     setMenuState(false);
                 }
+            });
+
+            initRevealAnimations();
+            initPageTransitions();
+
+            window.addEventListener('load', function() {
+                window.setTimeout(hidePageLoader, prefersReducedMotion ? 0 : 420);
             });
         })();
     </script>
@@ -747,6 +1077,10 @@
                     verifyOtpBtn.disabled = true;
                     verifyOtpBtn.textContent = 'Verifying...';
 
+                    if (window.showPageLoader) {
+                        window.showPageLoader('Verifying your one-time password');
+                    }
+
                     try {
                         const verifyFormData = new FormData(otpVerifyForm);
                         const verifyResponse = await fetch(otpVerifyForm.action, {
@@ -824,6 +1158,10 @@
                     } finally {
                         verifyOtpBtn.disabled = false;
                         verifyOtpBtn.textContent = 'VERIFY OTP';
+
+                        if (window.hidePageLoader) {
+                            window.hidePageLoader();
+                        }
                     }
                 });
 
@@ -845,6 +1183,10 @@
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
+
+            if (window.showPageLoader) {
+                window.showPageLoader('Submitting your report securely');
+            }
 
             try {
                 const response = await fetch(form.action, {
@@ -905,6 +1247,10 @@
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'SUBMIT TO LIPA PNP';
+
+                if (window.hidePageLoader) {
+                    window.hidePageLoader();
+                }
             }
         });
     </script>
