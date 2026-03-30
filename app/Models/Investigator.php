@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Investigator extends Model
+class Investigator extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'badge_number',
@@ -16,5 +17,9 @@ class Investigator extends Model
         'password',
         'profile_image',
         'status',
+    ];
+
+    protected $hidden = [
+        'password',
     ];
 }

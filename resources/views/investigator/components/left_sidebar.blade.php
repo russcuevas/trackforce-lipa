@@ -49,10 +49,13 @@
     </nav>
 
     <div class="p-4 border-t border-white/10">
-        <button
-            class="w-full bg-tf-red text-white py-2 rounded font-bold text-sm uppercase flex items-center justify-center gap-2">
-            <i class="fa-solid fa-power-off"></i>
-            <span class="hidden lg:block">Logout</span>
-        </button>
+        <form action="{{ route('auth.logout') }}" method="POST">
+            @csrf
+            <button type="submit"
+                class="w-full bg-tf-red text-white py-2 rounded font-bold text-sm uppercase flex items-center justify-center gap-2">
+                <i class="fa-solid fa-power-off"></i>
+                <span class="hidden lg:block">Logout</span>
+            </button>
+        </form>
     </div>
 </aside>

@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -481,6 +483,54 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script>
+        const notyf = new Notyf({
+            duration: 4000,
+            position: {
+                x: 'right',
+                y: 'top'
+            },
+            dismissible: true,
+            types: [{
+                    type: 'success',
+                    background: '#198754',
+                    icon: {
+                        // Changed from bi bi-check-circle-fill
+                        className: 'fa-solid fa-circle-check',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                },
+                {
+                    type: 'error',
+                    background: '#dc3545',
+                    icon: {
+                        // Changed from bi bi-exclamation-triangle-fill
+                        className: 'fa-solid fa-triangle-exclamation',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                }
+            ]
+        });
+
+        @if (session('success'))
+            notyf.open({
+                type: 'success',
+                message: @json(session('success'))
+            });
+        @endif
+
+        @if ($errors->any())
+            @foreach ($errors->all() as $error)
+                notyf.open({
+                    type: 'error',
+                    message: @json($error)
+                });
+            @endforeach
+        @endif
+    </script>
     <script>
         const numberFormatter = new Intl.NumberFormat();
         const dashboardDataUrl = '{{ route('investigator.dashboard.data') }}';

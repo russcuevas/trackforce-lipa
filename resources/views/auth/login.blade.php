@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 
     <style>
         body {
@@ -78,16 +79,22 @@
                 <p class="text-slate-400 text-xs mt-1 font-light">Verification required to proceed.</p>
             </div>
 
-            <form action="#" class="space-y-4">
+            <form action="{{ route('auth.login.submit') }}" method="POST" class="space-y-4">
+                @csrf
                 <div class="space-y-1.5">
                     <label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest ml-1">Badge ID /
                         Email</label>
                     <div class="relative group">
                         <i
                             class="fa-solid fa-user-shield absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs group-focus-within:text-[#FFD700] transition-colors"></i>
-                        <input type="text" placeholder="ID Number / Email"
-                            class="w-full pl-10 pr-4 py-3 rounded-xl outline-none input-dark text-xs">
+                        <input type="text" name="identifier" value="{{ old('identifier') }}"
+                            placeholder="ID Number / Email"
+                            class="w-full pl-10 pr-4 py-3 rounded-xl outline-none input-dark text-xs @error('identifier') border-red-500 @enderror"
+                            required>
                     </div>
+                    @error('identifier')
+                        <p class="text-red-400 text-[10px] ml-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="space-y-1.5">
@@ -96,8 +103,8 @@
                     <div class="relative group">
                         <i
                             class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs group-focus-within:text-[#FFD700] transition-colors"></i>
-                        <input type="password" placeholder="••••••••"
-                            class="w-full pl-10 pr-4 py-3 rounded-xl outline-none input-dark text-xs">
+                        <input type="password" name="password" placeholder="••••••••"
+                            class="w-full pl-10 pr-4 py-3 rounded-xl outline-none input-dark text-xs" required>
                     </div>
                 </div>
 
@@ -107,9 +114,8 @@
                     </a>
                 </div>
 
-                <button type="button" onclick="window.location.href='investigator/dashboard';"
+                <button type="submit"
                     class="w-full bg-[#0B3D91] hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all duration-300 shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] text-xs mt-2 uppercase tracking-widest">
-
                     <span>Login</span>
                     <i class="fa-solid fa-arrow-right-to-bracket text-[#FFD700] text-[10px]"></i>
                 </button>
@@ -117,7 +123,61 @@
 
         </div>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script>
+        const notyf = new Notyf({
+            duration: 4000,
+            position: {
+                x: 'right',
+                y: 'top'
+            },
+            dismissible: true,
+            types: [{
+                    type: 'success',
+                    background: '#198754',
+                    icon: {
+                        // Changed from bi bi-check-circle-fill
+                        className: 'fa-solid fa-circle-check',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                },
+                {
+                    type: 'error',
+                    background: '#dc3545',
+                    icon: {
+                        // Changed from bi bi-exclamation-triangle-fill
+                        className: 'fa-solid fa-triangle-exclamation',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                }
+            ]
+        });
 
+        @if (session('success'))
+            notyf.open({
+                type: 'success',
+                message: @json(session('success'))
+            });
+        @endif
+
+        @if (session('error'))
+            notyf.open({
+                type: 'error',
+                message: @json(session('error'))
+            });
+        @endif
+
+        @if ($errors->any())
+            @foreach ($errors->all() as $error)
+                notyf.open({
+                    type: 'error',
+                    message: @json($error)
+                });
+            @endforeach
+        @endif
+    </script>
 </body>
 
 </html>
