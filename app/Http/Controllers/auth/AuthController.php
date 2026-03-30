@@ -24,20 +24,37 @@ class AuthController extends Controller
             'password'   => ['required', 'string'],
         ]);
 
-        $field = filter_var($credentials['identifier'], FILTER_VALIDATE_EMAIL) ? 'email' : 'badge_number';
+        $field = filter_var($credentials['identifier'], FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'badge_number';
 
+        // ✅ Add status condition here
         $attempt = Auth::guard('investigator')->attempt([
-            $field    => $credentials['identifier'],
+            $field     => $credentials['identifier'],
             'password' => $credentials['password'],
+            'status'   => 'Active',
         ], $request->boolean('remember'));
 
         if (!$attempt) {
-            return back()->withErrors(['identifier' => 'Invalid credentials. Please try again.'])->withInput($request->only('identifier'));
+
+            // Optional: Check if account exists but not active
+            $user = \App\Models\Investigator::where($field, $credentials['identifier'])->first();
+
+            if ($user && $user->status !== 'Active') {
+                return back()->withErrors([
+                    'identifier' => 'Cannot login. Your account is not active. Please contact the administrator.'
+                ])->withInput($request->only('identifier'));
+            }
+
+            return back()->withErrors([
+                'identifier' => 'Invalid credentials. Please try again.'
+            ])->withInput($request->only('identifier'));
         }
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('investigator.dashboard.page'))->with('success', 'You have logged in successfully.');
+        return redirect()->intended(route('investigator.dashboard.page'))
+            ->with('success', 'You have logged in successfully.');
     }
 
     public function LogoutRequest(Request $request)
