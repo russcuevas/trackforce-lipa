@@ -56,8 +56,7 @@ Route::middleware('investigator.auth')->group(function () {
     Route::patch('/investigator/notifications/{notification}/read', [NotificationController::class, 'MarkAsReadRequest'])->name('investigator.notification.read');
 
     // INVESTIGATOR ACCOUNT ROUTE
-    Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');
-    Route::post('/investigator/accounts/create', [AccountController::class, 'CreateAccountRequest'])->name('investigator.account.create');
+
     Route::put('/investigator/accounts/{investigator}/update', [AccountController::class, 'UpdateAccountRequest'])->name('investigator.account.update');
     Route::delete('/investigator/accounts/{investigator}/delete', [AccountController::class, 'DeleteAccountRequest'])->name('investigator.account.delete');
 
@@ -72,8 +71,21 @@ Route::middleware('investigator.auth')->group(function () {
 
     // INVESTIGATOR INCIDENTS ROUTE
     Route::get('/investigator/incidents/reports', [IncidentReportController::class, 'IncidentReportPage'])->name('investigator.incident.report.page');
-    Route::get('/investigator/incidents/case', [IncidentReportController::class, 'IncidentCaseViewPage'])->name('investigator.incident.view.case.page');
+    Route::post('/investigator/incidents/reports/create', [IncidentReportController::class, 'CreateIncidentRequest'])->name('investigator.incident.report.create');
+    Route::patch('/investigator/incidents/{incident}/status', [IncidentReportController::class, 'UpdateIncidentStatusRequest'])
+        ->whereNumber('incident')
+        ->name('investigator.incident.status.update');
+    Route::patch('/investigator/incidents/{incident}/details', [IncidentReportController::class, 'UpdateIncidentDetailsRequest'])
+        ->whereNumber('incident')
+        ->name('investigator.incident.details.update');
+    Route::get('/investigator/incidents/{incident}/case', [IncidentReportController::class, 'IncidentCaseViewPage'])
+        ->whereNumber('incident')
+        ->name('investigator.incident.view.case.page');
     Route::get('/investigator/incidents/print/case', [IncidentReportController::class, 'IncidentPrintCaseRequest'])->name('investigator.incident.print.case.page');
 
     Route::get('/investigator/logs', [AuditLogsController::class, 'LogsPage'])->name('investigator.logs.page');
 });
+
+
+Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');
+Route::post('/investigator/accounts/create', [AccountController::class, 'CreateAccountRequest'])->name('investigator.account.create');

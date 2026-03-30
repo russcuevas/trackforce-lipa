@@ -179,10 +179,20 @@
         </div>
 
         <div class="mb-4 text-[11px] border border-gray-300 p-2">
-            <p><strong>REPORTER:</strong> {{ strtoupper($incident->reporter_name ?? 'N/A') }}</p>
-            <p><strong>CONTACT:</strong> {{ $incident->reporter_contact ?? 'N/A' }}</p>
-            <p><strong>EMAIL:</strong> {{ $incident->reporter_email ?? 'N/A' }}</p>
-            <p><strong>ADDRESS:</strong> {{ strtoupper($incident->reporter_address ?? 'N/A') }}</p>
+            @if (empty($incident->reporter_name) &&
+                    empty($incident->reporter_contact) &&
+                    empty($incident->reporter_email) &&
+                    empty($incident->reporter_address))
+                <p><strong>REPORTER:</strong> NO REPORTER</p>
+            @else
+                <p><strong>REPORTER:</strong>
+                    {{ strtoupper($incident->reporter_name ?? 'N/A') }}</p>
+                <p><strong>CONTACT:</strong> {{ $incident->reporter_contact ?? 'N/A' }}</p>
+                <p><strong>EMAIL:</strong> {{ $incident->reporter_email ?? 'N/A' }}</p>
+                <p><strong>ADDRESS:</strong>
+                    {{ strtoupper($incident->reporter_address ?? 'N/A') }}</p>
+            @endif
+
             <p><strong>STATUS:</strong> {{ strtoupper($incident->status ?? 'RESOLVED') }}</p>
         </div>
 
@@ -190,15 +200,34 @@
             <h3 class="bg-gray-doc px-2 py-1 text-[10px] font-black border-t border-b border-black mb-1 uppercase">
                 Narrative Report</h3>
             @php
-                $narrative = $involvedParties
-                    ->pluck('statement')
-                    ->filter(fn($value) => trim((string) $value) !== '')
-                    ->map(fn($value) => trim((string) $value))
-                    ->implode(' ');
+                $narratives = $involvedParties
+                    ->map(function ($party) {
+                        $statement = trim((string) ($party->statement ?? ''));
+                        $name = trim((string) ($party->full_name ?? ''));
+
+                        return [
+                            'name' => $name !== '' ? $name : 'Unknown party',
+                            'statement' => $statement,
+                        ];
+                    })
+                    ->filter(fn($narrative) => $narrative['statement'] !== '')
+                    ->values();
             @endphp
-            <p class="text-[11px] leading-tight text-justify italic">
-                {{ $narrative !== '' ? $narrative : 'No narrative statement available for this incident.' }}
-            </p>
+
+            @if ($narratives->isNotEmpty())
+                <div class="space-y-2">
+                    @foreach ($narratives as $narrative)
+                        <p class="text-[11px] leading-tight text-justify italic">
+                            <span class="font-bold not-italic">{{ $narrative['name'] }}:</span>
+                            {{ $narrative['statement'] }}
+                        </p>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-[11px] leading-tight text-justify italic">
+                    No narrative statement available for this incident.
+                </p>
+            @endif
         </div>
 
         <div class="grid grid-cols-1 gap-4 mb-6">
@@ -207,6 +236,7 @@
                 <table class="w-full text-[10px] border-collapse border border-black text-left">
                     <tr class="bg-gray-doc border-b border-black font-bold">
                         <th class="p-1 border-r border-black uppercase">Name</th>
+                        <th class="p-1 border-r border-black uppercase">License #</th>
                         <th class="p-1 border-r border-black uppercase">Role</th>
                         <th class="p-1 border-r border-black uppercase">Status</th>
                     </tr>
@@ -218,12 +248,13 @@
                                     ({{ strtoupper((string) ($party->sex ?? 'N/A')) }}/{{ $party->age ?? 'N/A' }})
                                 @endif
                             </td>
+                            <td class="p-1 border-r border-black uppercase">{{ $party->license_number ?? 'N/A' }}</td>
                             <td class="p-1 border-r border-black uppercase">{{ $party->role ?? 'N/A' }}</td>
                             <td class="p-1 uppercase">{{ $party->injury_severity ?? 'N/A' }}</td>
                         </tr>
                     @empty
                         <tr class="border-b border-black">
-                            <td class="p-1 border-r border-black" colspan="3">No involved parties recorded.</td>
+                            <td class="p-1 border-r border-black" colspan="4">No involved parties recorded.</td>
                         </tr>
                     @endforelse
                 </table>

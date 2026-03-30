@@ -102,6 +102,10 @@
             --pin-color: #CE1126;
         }
 
+        .pulse-pin.accepted {
+            --pin-color: #2563eb;
+        }
+
         .pulse-pin.investigation {
             --pin-color: #eab308;
         }
@@ -248,37 +252,45 @@
             </section>
 
             {{-- Stat Cards --}}
-            <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-yellow-500">
+            <section class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
                     <p class="text-xs uppercase font-bold text-gray-500 mb-1">Total Incidents</p>
                     <div class="flex items-end justify-between">
                         <h2 id="totalIncidentsValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($totalIncidents) }}</h2>
-                        <span class="text-yellow-500 text-xs font-bold"><i class="fa-solid fa-database"></i> Live</span>
+                        <span class="text-red-500 text-xs font-bold"><i class="fa-solid fa-database"></i> Live</span>
                     </div>
                 </div>
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-yellow-500">
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
+                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Accepted</p>
+                    <div class="flex items-end justify-between">
+                        <h2 id="acceptedValue" class="text-2xl md:text-3xl font-black">
+                            {{ number_format($acceptedCount) }}</h2>
+                        <i class="fa-solid fa-user-check text-red-500 text-lg md:text-xl"></i>
+                    </div>
+                </div>
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
                     <p class="text-xs uppercase font-bold text-gray-500 mb-1">Under Investigation</p>
                     <div class="flex items-end justify-between">
                         <h2 id="underInvestigationValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($underInvestigationCount) }}</h2>
-                        <i class="fa-solid fa-hourglass-half text-yellow-500 text-lg md:text-xl"></i>
+                        <i class="fa-solid fa-hourglass-half text-red-500 text-lg md:text-xl"></i>
                     </div>
                 </div>
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-yellow-500">
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
                     <p class="text-xs uppercase font-bold text-gray-500 mb-1">Resolved</p>
                     <div class="flex items-end justify-between">
                         <h2 id="resolvedTodayValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($resolvedTodayCount) }}</h2>
-                        <i class="fa-solid fa-check-double text-yellow-500 text-lg md:text-xl"></i>
+                        <i class="fa-solid fa-check-double text-red-500 text-lg md:text-xl"></i>
                     </div>
                 </div>
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-yellow-500">
+                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
                     <p class="text-xs uppercase font-bold text-gray-500 mb-1">Pending Review</p>
                     <div class="flex items-end justify-between">
                         <h2 id="pendingReviewValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($pendingReviewCount) }}</h2>
-                        <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-lg md:text-xl"></i>
+                        <i class="fa-solid fa-triangle-exclamation text-red-500 text-lg md:text-xl"></i>
                     </div>
                 </div>
             </section>
@@ -314,6 +326,10 @@
                         <span class="text-gray-400 uppercase tracking-wide text-[10px]">Legend:</span>
                         <span class="flex items-center gap-1.5">
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-tf-red flex-shrink-0"></span> Pending
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-600 flex-shrink-0"></span>
+                            Accepted
                         </span>
                         <span class="flex items-center gap-1.5">
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-500 flex-shrink-0"></span>
@@ -608,6 +624,7 @@
         function getStatusMeta(status) {
             const statusValue = (status || '').toLowerCase();
             const isResolved = ['resolved', 'completed', 'closed'].includes(statusValue);
+            const isAccepted = statusValue === 'accepted';
             const isInvestigation = ['under investigation', 'investigating', 'in progress'].includes(statusValue);
 
             if (isResolved) {
@@ -616,6 +633,15 @@
                     badgeClass: 'status-badge-resolved',
                     pinType: 'resolved',
                     popupStatusClass: 'text-green-600'
+                };
+            }
+
+            if (isAccepted) {
+                return {
+                    lineClass: 'bg-blue-600',
+                    badgeClass: 'status-badge-accepted',
+                    pinType: 'accepted',
+                    popupStatusClass: 'text-blue-600'
                 };
             }
 
@@ -642,7 +668,7 @@
         const ageChart = new Chart(ageCtx, {
             type: 'bar',
             data: {
-                labels: ['18-20', '21-30', '31-40', '41+'],
+                labels: ['17 Below', '18-30', '31-40', '41-59', '60+'],
                 datasets: [{
                     label: 'Count',
                     data: ageChartData,
@@ -672,11 +698,11 @@
         const sexChart = new Chart(sexCtx, {
             type: 'bar',
             data: {
-                labels: ['Male', 'Female', 'Other'],
+                labels: ['Male', 'Female'],
                 datasets: [{
                     label: 'Count',
                     data: sexChartData,
-                    backgroundColor: ['#0B3D91', '#FFD700', '#64748b'],
+                    backgroundColor: ['#0B3D91', '#FFD700'],
                     borderRadius: 6
                 }]
             },
@@ -941,6 +967,7 @@
 
         function updateStats(data) {
             document.getElementById('totalIncidentsValue').textContent = numberFormatter.format(data.total_incidents || 0);
+            document.getElementById('acceptedValue').textContent = numberFormatter.format(data.accepted_count || 0);
             document.getElementById('underInvestigationValue').textContent = numberFormatter.format(data
                 .under_investigation_count || 0);
             document.getElementById('resolvedTodayValue').textContent = numberFormatter.format(data.resolved_today_count ||
@@ -1011,7 +1038,7 @@
                 renderRecentSubmissions(data.recent_incidents || []);
                 renderAddressCounts(data.address_counts || []);
                 renderMapIncidents(data.map_incidents || [], false);
-                updateCharts(data.age_chart_data || [0, 0, 0, 0], data.sex_chart_data || [0, 0, 0]);
+                updateCharts(data.age_chart_data || [0, 0, 0, 0, 0], data.sex_chart_data || [0, 0]);
                 updateBreakdownCharts(data.incident_type_breakdown || null, data.vehicle_type_breakdown || null);
 
                 currentFilters.month = toNullableInt(data.selected_month);

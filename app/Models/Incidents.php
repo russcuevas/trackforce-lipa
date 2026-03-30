@@ -29,6 +29,8 @@ class Incidents extends Model
         // Status
         'status',
         'time_reported',
+        'time_accepted',
+        'time_under_investigation',
         'time_documented',
         'time_completed',
         'otp',
@@ -41,5 +43,10 @@ class Incidents extends Model
     public function notifications()
     {
         return $this->hasMany(InvestigatorNotification::class, 'incident_id');
+    }
+
+    public function assignedInvestigator()
+    {
+        return $this->belongsTo(Investigator::class, 'assigned_investigator_id');
     }
 }

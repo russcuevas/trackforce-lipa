@@ -23,6 +23,7 @@ class DashboardController extends Controller
 
         return response()->json([
             'total_incidents' => $data['totalIncidents'],
+            'accepted_count' => $data['acceptedCount'],
             'under_investigation_count' => $data['underInvestigationCount'],
             'resolved_today_count' => $data['resolvedTodayCount'],
             'pending_review_count' => $data['pendingReviewCount'],
@@ -97,6 +98,12 @@ class DashboardController extends Controller
             ->whereIn(DB::raw('LOWER(COALESCE(status, ""))'), ['under investigation', 'investigating', 'in progress'])
             ->count();
 
+        $acceptedCount = DB::table('incidents')
+            ->where('is_verified', 1)
+            ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear))
+            ->where(DB::raw('LOWER(COALESCE(status, ""))'), '=', 'accepted')
+            ->count();
+
         $resolvedTodayCount = DB::table('incidents')
             ->where('is_verified', 1)
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear))
@@ -159,10 +166,11 @@ class DashboardController extends Controller
             ->where('incidents.is_verified', 1)
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear, 'incidents.created_at'))
             ->selectRaw(
-                'SUM(CASE WHEN age BETWEEN 18 AND 20 THEN 1 ELSE 0 END) as age_18_20,
-                 SUM(CASE WHEN age BETWEEN 21 AND 30 THEN 1 ELSE 0 END) as age_21_30,
+                'SUM(CASE WHEN age <= 17 THEN 1 ELSE 0 END) as age_17_below,
+                 SUM(CASE WHEN age BETWEEN 18 AND 30 THEN 1 ELSE 0 END) as age_18_30,
                  SUM(CASE WHEN age BETWEEN 31 AND 40 THEN 1 ELSE 0 END) as age_31_40,
-                 SUM(CASE WHEN age >= 41 THEN 1 ELSE 0 END) as age_41_plus'
+                 SUM(CASE WHEN age BETWEEN 41 AND 59 THEN 1 ELSE 0 END) as age_41_59,
+                 SUM(CASE WHEN age >= 60 THEN 1 ELSE 0 END) as age_60_plus'
             )
             ->first();
 
@@ -172,8 +180,7 @@ class DashboardController extends Controller
             ->tap(fn($query) => $this->applyIncidentDateFilter($query, $selectedMonth, $selectedYear, 'incidents.created_at'))
             ->selectRaw(
                 'SUM(CASE WHEN LOWER(sex) = "male" THEN 1 ELSE 0 END) as male,
-                 SUM(CASE WHEN LOWER(sex) = "female" THEN 1 ELSE 0 END) as female,
-                 SUM(CASE WHEN sex IS NOT NULL AND sex != "" AND LOWER(sex) NOT IN ("male", "female") THEN 1 ELSE 0 END) as other'
+                 SUM(CASE WHEN LOWER(sex) = "female" THEN 1 ELSE 0 END) as female'
             )
             ->first();
 
@@ -228,6 +235,7 @@ class DashboardController extends Controller
 
         return [
             'totalIncidents' => $totalIncidents,
+            'acceptedCount' => $acceptedCount,
             'underInvestigationCount' => $underInvestigationCount,
             'resolvedTodayCount' => $resolvedTodayCount,
             'pendingReviewCount' => $pendingReviewCount,
@@ -238,15 +246,15 @@ class DashboardController extends Controller
             'mapIncidents' => $mapIncidents,
             'addressCounts' => $addressCounts,
             'ageChartData' => [
-                (int) ($ageBuckets->age_18_20 ?? 0),
-                (int) ($ageBuckets->age_21_30 ?? 0),
+                (int) ($ageBuckets->age_17_below ?? 0),
+                (int) ($ageBuckets->age_18_30 ?? 0),
                 (int) ($ageBuckets->age_31_40 ?? 0),
-                (int) ($ageBuckets->age_41_plus ?? 0),
+                (int) ($ageBuckets->age_41_59 ?? 0),
+                (int) ($ageBuckets->age_60_plus ?? 0),
             ],
             'sexChartData' => [
                 (int) ($sexBuckets->male ?? 0),
                 (int) ($sexBuckets->female ?? 0),
-                (int) ($sexBuckets->other ?? 0),
             ],
             'incidentTypeBreakdown' => [
                 'labels' => $incidentTypeCounts->pluck('incident_type')->values(),

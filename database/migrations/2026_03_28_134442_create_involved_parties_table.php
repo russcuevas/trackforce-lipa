@@ -22,7 +22,7 @@ return new class extends Migration
             $table->integer('age')->nullable();
             $table->string('sex')->nullable();
             $table->string('role')->nullable();
-            $table->string('license_number', 50)->nullable();
+            $table->string('license_number')->nullable();
             $table->string('injury_severity')->nullable();
             $table->text('statement')->nullable();
 

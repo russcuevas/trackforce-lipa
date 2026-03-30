@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 
 
     <style>
@@ -68,26 +69,35 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 <button
-                    class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-tf-blue transition-all text-left">
+                    class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
                     <p class="text-[10px] font-black text-gray-400 uppercase">All Cases</p>
-                    <p class="text-xl font-black text-tf-blue">1,284</p>
+                    <p class="text-xl font-black text-tf-blue">{{ number_format((int) ($stats['all'] ?? 0)) }}</p>
                 </button>
                 <button
                     class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
                     <p class="text-[10px] font-black text-gray-400 uppercase">Pending</p>
-                    <p class="text-xl font-black text-tf-red">09</p>
+                    <p class="text-xl font-black text-tf-blue">{{ number_format((int) ($stats['pending'] ?? 0)) }}</p>
                 </button>
                 <button
                     class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
-                    <p class="text-[10px] font-black text-gray-400 uppercase">Under Investigation</p>
-                    <p class="text-xl font-black text-yellow-600">42</p>
+                    <p class="text-[10px] font-black text-gray-400 uppercase">Accepted</p>
+                    <p class="text-xl font-black text-tf-blue">{{ number_format((int) ($stats['accepted'] ?? 0)) }}
+                    </p>
                 </button>
                 <button
                     class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
                     <p class="text-[10px] font-black text-gray-400 uppercase">Resolved</p>
-                    <p class="text-xl font-black text-green-600">1,233</p>
+                    <p class="text-xl font-black text-tf-blue">{{ number_format((int) ($stats['resolved'] ?? 0)) }}
+                    </p>
+                </button>
+                <button
+                    class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-500 transition-all text-left">
+                    <p class="text-[10px] font-black text-gray-400 uppercase">Under Investigation</p>
+                    <p class="text-xl font-black text-tf-blue">
+                        {{ number_format((int) ($stats['under_investigation'] ?? 0)) }}
+                    </p>
                 </button>
             </div>
 
@@ -106,59 +116,69 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4 border-l-4 border-tf-red">
-                                        <span class="font-bold text-gray-400">#2026-0045</span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <p class="font-bold text-gray-700">Road Accident</p>
-                                        <p class="text-[10px] text-gray-400 uppercase">Reported: 2 mins ago</p>
-                                    </td>
-                                    <td class="py-4 px-4 text-gray-500">
-                                        <i class="fa-solid fa-location-dot mr-1 text-gray-300"></i> Lipa City Proper
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <span
-                                            class="bg-red-100 text-tf-red px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter">Pending
-                                            Review</span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex justify-center">
-                                            <a href="{{ route('investigator.incident.view.case.page') }}"
-                                            class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
-                                                <i class="fa-solid fa-eye"></i>
-                                                <span class="uppercase tracking-wider">View Case</span>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
+                                @foreach ($incidents as $incident)
+                                    @php
+                                        $statusRaw = trim((string) ($incident->status ?? 'Pending'));
+                                        $statusLower = strtolower($statusRaw);
 
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4 border-l-4 border-yellow-500">
-                                        <span class="font-bold text-gray-400">#2026-0044</span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <p class="font-bold text-gray-700">Vehicle Violation</p>
-                                        <p class="text-[10px] text-gray-400 uppercase">Reported: 1 hour ago</p>
-                                    </td>
-                                    <td class="py-4 px-4 text-gray-500">
-                                        <i class="fa-solid fa-location-dot mr-1 text-gray-300"></i> Sabang, Lipa
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <span
-                                            class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter">Under
-                                            Investigation</span>
-                                    </td>
-                                    <td class="py-4 px-4">
-                                        <div class="flex justify-center">
-                                            <a href="{{ route('investigator.incident.view.case.page') }}"
-                                            class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
-                                                <i class="fa-solid fa-eye"></i>
-                                                <span class="uppercase tracking-wider">View Case</span>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        $statusStyles = 'bg-gray-100 text-gray-700';
+                                        if (in_array($statusLower, ['pending', 'pending review'], true)) {
+                                            $statusStyles = 'bg-red-100 text-red-700';
+                                        } elseif ($statusLower === 'accepted') {
+                                            $statusStyles = 'bg-blue-100 text-blue-700';
+                                        } elseif ($statusLower === 'under investigation') {
+                                            $statusStyles = 'bg-yellow-100 text-yellow-700';
+                                        } elseif ($statusLower === 'declined') {
+                                            $statusStyles = 'bg-gray-200 text-gray-700';
+                                        } elseif ($statusLower === 'resolved') {
+                                            $statusStyles = 'bg-green-100 text-green-700';
+                                        }
+
+                                        $borderColor = in_array($statusLower, ['pending', 'pending review'], true)
+                                            ? 'border-tf-red'
+                                            : ($statusLower === 'accepted'
+                                                ? 'border-yellow-500'
+                                                : ($statusLower === 'resolved'
+                                                    ? 'border-green-500'
+                                                    : 'border-gray-300'));
+
+                                        $reportedAt = $incident->time_reported ?? $incident->created_at;
+                                    @endphp
+
+                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                        <td class="py-4 px-4 border-l-4 {{ $borderColor }}">
+                                            <span
+                                                class="font-bold text-gray-400">#{{ $incident->report_number ?? 'INC-' . $incident->id }}</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <p class="font-bold text-gray-700">{{ $incident->incident_type ?? 'N/A' }}
+                                            </p>
+                                            <p class="text-[10px] text-gray-400 uppercase">
+                                                Reported:
+                                                {{ $reportedAt ? \Illuminate\Support\Carbon::parse($reportedAt)->diffForHumans() : 'N/A' }}
+                                            </p>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-500">
+                                            <i class="fa-solid fa-location-dot mr-1 text-gray-300"></i>
+                                            {{ $incident->location_name ?? 'N/A' }}
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="{{ $statusStyles }} px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter">
+                                                {{ $statusRaw !== '' ? $statusRaw : 'Pending' }}
+                                            </span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex justify-center">
+                                                <a href="{{ route('investigator.incident.view.case.page', ['incident' => $incident->id]) }}"
+                                                    class="bg-tf-blue hover:bg-blue-900 text-white px-5 py-2 rounded-xl text-[10px] font-black transition-all shadow-md hover:shadow-blue-900/20 flex items-center gap-2 w-fit active:scale-95">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                    <span class="uppercase tracking-wider">View Case</span>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -170,6 +190,54 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script>
+        const notyf = new Notyf({
+            duration: 4000,
+            position: {
+                x: 'right',
+                y: 'top'
+            },
+            dismissible: true,
+            types: [{
+                    type: 'success',
+                    background: '#198754',
+                    icon: {
+                        // Changed from bi bi-check-circle-fill
+                        className: 'fa-solid fa-circle-check',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                },
+                {
+                    type: 'error',
+                    background: '#dc3545',
+                    icon: {
+                        // Changed from bi bi-exclamation-triangle-fill
+                        className: 'fa-solid fa-triangle-exclamation',
+                        tagName: 'i',
+                        color: 'white'
+                    }
+                }
+            ]
+        });
+
+        @if (session('success'))
+            notyf.open({
+                type: 'success',
+                message: @json(session('success'))
+            });
+        @endif
+
+        @if ($errors->any())
+            @foreach ($errors->all() as $error)
+                notyf.open({
+                    type: 'error',
+                    message: @json($error)
+                });
+            @endforeach
+        @endif
+    </script>
     <script>
         $(document).ready(function() {
             $('#reportsTable').DataTable({
