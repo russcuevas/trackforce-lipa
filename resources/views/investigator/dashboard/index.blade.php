@@ -160,6 +160,18 @@
             overflow: hidden !important;
         }
 
+        .legend-filter {
+            cursor: pointer;
+            border-radius: 9999px;
+            padding: 0.15rem 0.45rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .legend-filter.is-active {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
         @media (max-width: 640px) {
             .map-header {
                 flex-direction: column;
@@ -332,21 +344,20 @@
                     <div
                         class="map-legend flex flex-wrap items-center gap-x-5 gap-y-1.5 px-4 py-3 border-t border-gray-100 text-xs font-semibold text-gray-500">
                         <span class="text-gray-400 uppercase tracking-wide text-[10px]">Legend:</span>
-                        <span class="flex items-center gap-1.5">
+                        <button type="button" class="legend-filter flex items-center gap-1.5"
+                            data-map-filter="pending">
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-tf-red flex-shrink-0"></span> Pending
-                        </span>
-                        <span class="flex items-center gap-1.5">
+                        </button>
+                        <button type="button" class="legend-filter flex items-center gap-1.5"
+                            data-map-filter="accepted">
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-600 flex-shrink-0"></span>
                             Accepted
-                        </span>
-                        <span class="flex items-center gap-1.5">
+                        </button>
+                        <button type="button" class="legend-filter flex items-center gap-1.5"
+                            data-map-filter="investigation">
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-500 flex-shrink-0"></span>
                             Under Investigation
-                        </span>
-                        <span class="flex items-center gap-1.5">
-                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-600 flex-shrink-0"></span>
-                            Resolved
-                        </span>
+                        </button>
                     </div>
                 </div>
 
@@ -851,9 +862,40 @@
         }).addTo(map);
 
         const markerLayer = L.featureGroup().addTo(map);
+        let activeMapStatusFilter = null;
+
+        function normalizeMapFilterStatus(status) {
+            const value = String(status || '').toLowerCase();
+
+            if (value === 'accepted') {
+                return 'accepted';
+            }
+
+            if (['under investigation', 'investigating', 'in progress'].includes(value)) {
+                return 'investigation';
+            }
+
+            return 'pending';
+        }
+
+        function updateLegendFilterUi() {
+            document.querySelectorAll('[data-map-filter]').forEach((element) => {
+                const filterValue = element.getAttribute('data-map-filter');
+                element.classList.toggle('is-active', filterValue === activeMapStatusFilter);
+            });
+        }
 
         function renderMapIncidents(items, shouldFitBounds = false) {
-            incidents = items || [];
+            const hiddenStatuses = ['resolved', 'completed', 'closed'];
+            const visibleIncidents = (items || []).filter((incident) => {
+                const statusValue = String(incident?.status || '').toLowerCase();
+                return !hiddenStatuses.includes(statusValue);
+            });
+
+            incidents = activeMapStatusFilter ?
+                visibleIncidents.filter((incident) => normalizeMapFilterStatus(incident.status) === activeMapStatusFilter) :
+                visibleIncidents;
+
             markerLayer.clearLayers();
 
             incidents.forEach(incident => {
@@ -1072,8 +1114,19 @@
         }
 
         setFilterControlValues();
+
+        document.querySelectorAll('[data-map-filter]').forEach((element) => {
+            element.addEventListener('click', () => {
+                const selectedFilter = element.getAttribute('data-map-filter');
+                activeMapStatusFilter = activeMapStatusFilter === selectedFilter ? null : selectedFilter;
+                updateLegendFilterUi();
+                renderMapIncidents(incidents, true);
+            });
+        });
+
+        updateLegendFilterUi();
         renderMapIncidents(incidents, true);
-        setInterval(refreshDashboardData, 8000);
+        setInterval(refreshDashboardData, 3000);
     </script>
 </body>
 
