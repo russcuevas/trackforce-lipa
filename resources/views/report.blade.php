@@ -436,6 +436,9 @@
                             <input type="text" name="plate_number[]" placeholder="Plate Number (If visible)"
                                 class="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm outline-none">
 
+                            <input type="text" name="vehicle_specific_name[]" placeholder="(e.g. Honda Click)"
+                                class="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm outline-none">
+
                             <input type="text" name="vehicle_color[]" placeholder="Vehicle Color"
                                 class="vehicle_color w-full bg-white border border-gray-200 rounded-xl p-3 text-sm outline-none">
 

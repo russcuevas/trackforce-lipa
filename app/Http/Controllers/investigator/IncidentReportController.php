@@ -396,6 +396,7 @@ class IncidentReportController extends Controller
             'vehicle_type.*' => 'nullable|string|max:50',
             'vehicle_type_other.*' => 'nullable|string|max:50',
             'plate_number.*' => 'nullable|string|max:20',
+            'vehicle_specific_name.*' => 'nullable|string|max:100',
             'vehicle_color.*' => 'nullable|string|max:30',
             'evidence.*' => 'file|mimes:jpg,jpeg,png,gif,mp4,mov,avi|max:10240',
         ], [
@@ -499,6 +500,7 @@ class IncidentReportController extends Controller
             $vehicleTypes = $request->input('vehicle_type', []);
             $vehicleTypeOthers = $request->input('vehicle_type_other', []);
             $plateNumbers = $request->input('plate_number', []);
+            $vehicleSpecificNames = $request->input('vehicle_specific_name', []);
             $vehicleColors = $request->input('vehicle_color', []);
 
             foreach ($vehicleTypes as $index => $vehicleTypeRaw) {
@@ -508,9 +510,10 @@ class IncidentReportController extends Controller
                     : $vehicleTypeRaw;
 
                 $plate = $plateNumbers[$index] ?? null;
+                $specificName = $vehicleSpecificNames[$index] ?? null;
                 $color = $vehicleColors[$index] ?? null;
 
-                if (!$vehicleType && !$plate && !$color) {
+                if (!$vehicleType && !$plate && !$specificName && !$color) {
                     continue;
                 }
 
@@ -518,6 +521,7 @@ class IncidentReportController extends Controller
                     'incident_id' => $incidentId,
                     'vehicle_type' => $vehicleType,
                     'plate_number' => $plate,
+                    'specific_name' => $specificName,
                     'color' => $color,
                     'created_at' => now(),
                     'updated_at' => now(),

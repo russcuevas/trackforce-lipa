@@ -38,6 +38,7 @@ class ReportController extends Controller
             'latitude' => 'required',
             'longitude' => 'required',
             'reporter_email' => 'required|email',
+            'vehicle_specific_name.*' => 'nullable|string|max:100',
             'evidence.*' => 'file|mimes:jpg,jpeg,png,gif,mp4,mov,avi|max:10240', // only images/videos, max 10MB
         ], [
             'incident_type_other.required_if' => 'Please specify the incident type when selecting Other.',
@@ -86,11 +87,13 @@ class ReportController extends Controller
             foreach ($request->vehicle_type as $index => $type) {
                 $vehicleType = $type === 'Other' ? $request->vehicle_type_other[$index] : $type;
                 $plate = $request->plate_number[$index] ?? null;
+                $specificName = $request->vehicle_specific_name[$index] ?? null;
                 $color = $request->vehicle_color[$index] ?? null; // new color field
 
                 DB::table('vehicles')->insert([
                     'incident_id' => $incidentId,
                     'vehicle_type' => $vehicleType,
+                    'specific_name' => $specificName,
                     'plate_number' => $plate,
                     'color' => $color,
                     'created_at' => now(),

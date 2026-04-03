@@ -20,6 +20,7 @@ return new class extends Migration
             // Vehicle Details
             $table->string('plate_number', 20)->nullable();
             $table->string('vehicle_type', 30)->nullable();
+            $table->string('specific_name', 100)->nullable();
             $table->string('color', 30)->nullable();
 
             // Constraint

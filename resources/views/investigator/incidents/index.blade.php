@@ -390,22 +390,76 @@
                     lng
                 } = e.latlng;
 
-                // Update Input Fields
-                document.getElementById('lat').value = lat.toFixed(8);
-                document.getElementById('lng').value = lng.toFixed(8);
-
-                // Update/Move Marker
-                if (marker) {
-                    marker.setLatLng([lat, lng]);
-                } else {
-                    marker = L.marker([lat, lng]).addTo(map);
-                }
-
-                // Reverse Geocoding (Address Lookup)
-                document.getElementById('location_name').value = "Detecting address...";
-                const address = await getAddress(lat, lng);
-                document.getElementById('location_name').value = address;
+                await applyIncidentLocation(lat, lng);
             });
+        }
+
+        async function applyIncidentLocation(lat, lng) {
+            const latInput = document.getElementById('lat');
+            const lngInput = document.getElementById('lng');
+            const locationNameInput = document.getElementById('location_name');
+
+            if (!latInput || !lngInput || !locationNameInput) {
+                return;
+            }
+
+            latInput.value = Number(lat).toFixed(8);
+            lngInput.value = Number(lng).toFixed(8);
+
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else if (map) {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+
+            if (map) {
+                map.setView([lat, lng], 17, {
+                    animate: true
+                });
+            }
+
+            locationNameInput.value = 'Detecting address...';
+            const address = await getAddress(lat, lng);
+            locationNameInput.value = address;
+        }
+
+        async function useCurrentLocationForIncident() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported on this browser/device.');
+                return;
+            }
+
+            if (!map) {
+                initMap();
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async function(position) {
+                        const {
+                            latitude,
+                            longitude
+                        } = position.coords;
+
+                        await applyIncidentLocation(latitude, longitude);
+                    },
+                    function(error) {
+                        let message = 'Unable to get your location. Please tap on the map instead.';
+
+                        if (error.code === error.PERMISSION_DENIED) {
+                            message = 'Location permission denied. Please allow location access and try again.';
+                        } else if (error.code === error.POSITION_UNAVAILABLE) {
+                            message = 'Location information is unavailable right now.';
+                        } else if (error.code === error.TIMEOUT) {
+                            message = 'Location request timed out. Please try again.';
+                        }
+
+                        alert(message);
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 0
+                    }
+            );
         }
 
         async function getAddress(lat, lng) {

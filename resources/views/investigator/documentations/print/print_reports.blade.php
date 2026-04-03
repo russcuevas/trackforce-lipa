@@ -271,7 +271,8 @@
                     @forelse ($vehicles as $vehicle)
                         <tr class="border-b border-black">
                             <td class="p-1 border-r border-black uppercase">{{ $vehicle->plate_number ?? 'N/A' }}</td>
-                            <td class="p-1 border-r border-black uppercase">{{ $vehicle->vehicle_type ?? 'N/A' }}</td>
+                            <td class="p-1 border-r border-black uppercase">{{ $vehicle->vehicle_type ?? 'N/A' }} -
+                                {{ $vehicle->specific_name ?? 'N/A' }}</td>
                             <td class="p-1 uppercase">{{ $vehicle->color ?? 'N/A' }}</td>
                         </tr>
                     @empty

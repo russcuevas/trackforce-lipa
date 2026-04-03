@@ -13,6 +13,7 @@ class Vehicles extends Model
         'incident_id',
         'plate_number',
         'vehicle_type',
+        'specific_name',
         'color',
     ];
 }

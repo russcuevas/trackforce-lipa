@@ -162,7 +162,8 @@
             $completedAt = in_array($statusLower, ['resolved', 'completed'], true) ? $incident->time_completed : null;
 
             if ($statusLower === 'declined') {
-                $declinedAt = $incident->time_declined ?? $incident->time_documented ?? $incident->updated_at ?? null;
+                $declinedAt =
+                    $incident->time_declined ?? ($incident->time_documented ?? ($incident->updated_at ?? null));
 
                 $caseHistory = [
                     [
@@ -462,7 +463,9 @@
                                             <p class="text-xs font-black text-tf-blue uppercase">
                                                 {{ $vehicle->plate_number ?? 'N/A' }}</p>
                                             <p class="text-[10px] font-bold text-gray-500 uppercase">
-                                                {{ $vehicle->vehicle_type ?? 'N/A' }} • {{ $vehicle->color ?? 'N/A' }}
+                                                <span style="color: #CE1126">{{ $vehicle->vehicle_type ?? 'N/A' }} •
+                                                    {{ $vehicle->specific_name ?? 'N/A' }}
+                                                    [{{ $vehicle->color ?? 'N/A' }}]</span>
                                             </p>
                                         </div>
                                     </div>
