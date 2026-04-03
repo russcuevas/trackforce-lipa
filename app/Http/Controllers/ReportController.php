@@ -238,7 +238,7 @@ class ReportController extends Controller
             'priority' => 'high',
             'title' => 'New Verified Incident Report',
             'message' => 'Report ' . $incident->report_number . ' (' . ($incident->incident_type ?? 'Incident') . ') at ' . ($incident->location_name ?? 'Unknown location') . ' has been OTP verified and is ready for investigator action.',
-            'action_url' => route('investigator.documentation.print.report.page', ['incident' => $incident->id]),
+            'action_url' => route('investigator.incident.view.case.page', ['incident' => $incident->id]),
         ]);
 
         AuditTrailLog::record([

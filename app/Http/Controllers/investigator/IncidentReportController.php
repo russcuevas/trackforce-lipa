@@ -186,8 +186,8 @@ class IncidentReportController extends Controller
                     'created_by_investigator_id' => $investigator->id,
                     'type' => 'incident_status',
                     'priority' => 'low',
-                    'title' => 'Case Assigned to You',
-                    'message' => "You have accepted and been assigned Case #{$incident->report_number} ({$incident->incident_type}).",
+                    'title' => 'Case Assigned',
+                    'message' => "Case accepted #{$incident->report_number} ({$incident->incident_type}).",
                     'action_url' => $actionUrl,
                 ]);
             }
