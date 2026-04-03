@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\InvestigatorResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -9,6 +10,11 @@ use Illuminate\Notifications\Notifiable;
 class Investigator extends Authenticatable
 {
     use HasFactory, Notifiable;
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new InvestigatorResetPasswordNotification($token));
+    }
 
     protected $fillable = [
         'badge_number',

@@ -36,6 +36,10 @@ Route::get('/track-case', [TrackCaseController::class, 'TrackCasePage'])->name('
 // AUTH ROUTE
 Route::get('/login', [AuthController::class, 'LoginPage'])->name('auth.login.page');
 Route::post('/login', [AuthController::class, 'LoginRequest'])->name('auth.login.submit');
+Route::get('/forgot-password', [AuthController::class, 'ForgotPasswordPage'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'SendResetLinkRequest'])->name('password.email');
+Route::get('/reset-password/{token}', [AuthController::class, 'ResetPasswordPage'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'ResetPasswordRequest'])->name('password.update');
 Route::post('/logout', [AuthController::class, 'LogoutRequest'])->name('auth.logout');
 
 // INVESTIGATOR ROUTE
@@ -88,5 +92,5 @@ Route::middleware('investigator.auth')->group(function () {
     // INVESTIGATOR AUDIT LOGS ROUTE
     Route::get('/investigator/logs', [AuditLogsController::class, 'LogsPage'])->name('investigator.logs.page');
 });
-    Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');
-    Route::post('/investigator/accounts/create', [AccountController::class, 'CreateAccountRequest'])->name('investigator.account.create');
+Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');
+Route::post('/investigator/accounts/create', [AccountController::class, 'CreateAccountRequest'])->name('investigator.account.create');
