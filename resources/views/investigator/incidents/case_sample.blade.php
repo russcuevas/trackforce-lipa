@@ -72,11 +72,13 @@
             $statusLower = strtolower($statusRaw);
             $isPending = in_array($statusLower, ['pending', 'pending review'], true);
             $isAccepted = $statusLower === 'accepted';
+            $isResolvedCase = in_array($statusLower, ['resolved', 'completed', 'closed'], true);
             $isUnderInvestigation = in_array(
                 $statusLower,
                 ['under investigation', 'investigating', 'in progress'],
                 true,
             );
+            $hasResolutionSummary = $isResolvedCase && filled($incident->resolved_statement);
 
             $statusStyles = 'bg-gray-100 text-gray-700 border-gray-200';
             if ($isPending) {
@@ -87,7 +89,7 @@
                 $statusStyles = 'bg-yellow-100 text-yellow-700 border-yellow-200';
             } elseif ($statusLower === 'declined') {
                 $statusStyles = 'bg-gray-200 text-gray-700 border-gray-300';
-            } elseif (in_array($statusLower, ['resolved', 'completed', 'closed'], true)) {
+            } elseif ($isResolvedCase) {
                 $statusStyles = 'bg-green-100 text-green-700 border-green-200';
             }
 
@@ -336,6 +338,7 @@
                                     <p class="text-xs font-bold text-gray-400">No investigator assigned yet.</p>
                                 @endif
                             </div>
+
                         </div>
                     </div>
 
@@ -369,6 +372,41 @@
                 </div>
 
                 <div class="lg:col-span-8 space-y-6">
+                    @if ($hasResolutionSummary)
+                        <div
+                            class="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 p-[1px] rounded-3xl shadow-sm">
+                            <div class="bg-white rounded-[calc(1.5rem-1px)] p-6">
+                                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                    <div>
+                                        <p class="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em]">
+                                            Case Outcome
+                                        </p>
+                                        <h3
+                                            class="mt-2 text-lg font-black text-gray-800 uppercase flex items-center gap-3">
+                                            <i class="fa-solid fa-flag-checkered text-emerald-500"></i>
+                                            Resolution Summary
+                                        </h3>
+                                    </div>
+                                    <div
+                                        class="px-4 py-3 rounded-2xl border border-emerald-100 bg-emerald-50 min-w-[180px]">
+                                        <p class="text-[9px] font-black text-emerald-700 uppercase tracking-widest">
+                                            Completed On
+                                        </p>
+                                        <p class="mt-1 text-xs font-bold text-gray-600">
+                                            {{ $incident->time_completed }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-5 py-4">
+                                    <p class="text-sm font-bold text-gray-700 leading-relaxed whitespace-pre-line">
+                                        {{ $incident->resolved_statement }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
                         <div class="flex items-center justify-between mb-4 px-2">
                             <h3 class="text-[11px] font-black text-tf-blue uppercase flex items-center gap-2">
@@ -838,21 +876,45 @@
         document.addEventListener('DOMContentLoaded', function() {
             const resolveCaseForms = document.querySelectorAll('.js-resolve-case-form');
 
+            function setResolvedStatementInput(form, value) {
+                let input = form.querySelector('input[name="resolved_statement"]');
+
+                if (!input) {
+                    input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'resolved_statement';
+                    form.appendChild(input);
+                }
+
+                input.value = value;
+            }
+
             resolveCaseForms.forEach((form) => {
                 form.addEventListener('submit', function(event) {
                     event.preventDefault();
 
                     Swal.fire({
-                        title: 'Are you sure?',
-                        text: 'Do you want to resolve this case?',
+                        title: 'Resolve Case',
+                        text: 'Provide a resolution summary before completing this case.',
+                        input: 'textarea',
+                        inputLabel: 'Resolution Summary [Not required]',
+                        inputPlaceholder: 'Example: Collision caused by unsafe overtaking. Both parties reached settlement and damages were documented. Case closed after final verification.',
+                        inputAttributes: {
+                            maxlength: '3000'
+                        },
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#059669',
                         cancelButtonColor: '#6b7280',
                         confirmButtonText: 'Yes, resolve case',
-                        cancelButtonText: 'Cancel'
+                        cancelButtonText: 'Cancel',
+                        inputValidator: (value) => {
+                            return null;
+                        }
                     }).then((result) => {
                         if (result.isConfirmed) {
+                            setResolvedStatementInput(form, String(result.value || '')
+                                .trim());
                             form.submit();
                         }
                     });

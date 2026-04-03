@@ -28,6 +28,7 @@ class Incidents extends Model
 
         // Status
         'status',
+        'resolved_statement',
         'time_reported',
         'time_accepted',
         'time_under_investigation',

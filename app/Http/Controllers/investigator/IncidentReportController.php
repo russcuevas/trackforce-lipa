@@ -117,6 +117,7 @@ class IncidentReportController extends Controller
     {
         $validated = $request->validate([
             'status' => 'required|in:Accepted,Declined,Resolved',
+            'resolved_statement' => 'nullable|string|max:3000',
         ]);
 
         $currentStatus = strtolower(trim((string) $incident->status));
@@ -134,15 +135,6 @@ class IncidentReportController extends Controller
                     'status' => 'Only under-investigation incidents can be completed.',
                 ]);
             }
-
-            if (
-                !empty($incident->assigned_investigator_id)
-                && (int) $incident->assigned_investigator_id !== (int) Auth::guard('investigator')->id()
-            ) {
-                return back()->withErrors([
-                    'status' => 'Only the assigned investigator can complete this case.',
-                ]);
-            }
         }
 
         $incident->status = $validated['status'];
@@ -153,14 +145,17 @@ class IncidentReportController extends Controller
                 $incident->time_accepted = now();
             }
             $incident->time_completed = null;
+            $incident->resolved_statement = null;
         }
 
         if ($validated['status'] === 'Declined') {
             $incident->time_completed = now();
+            $incident->resolved_statement = null;
         }
 
         if ($validated['status'] === 'Resolved') {
             $incident->time_completed = now();
+            $incident->resolved_statement = trim((string) ($validated['resolved_statement'] ?? ''));
         }
 
         $incident->save();
@@ -216,13 +211,14 @@ class IncidentReportController extends Controller
                 'action_performed' => "Declined case #{$incident->report_number} ({$incident->incident_type}).",
             ]);
         } elseif ($validated['status'] === 'Resolved') {
+            $resolutionSummary = trim((string) ($validated['resolved_statement'] ?? ''));
             InvestigatorNotification::notifyActiveInvestigators([
                 'incident_id' => $incident->id,
                 'created_by_investigator_id' => $investigator?->id,
                 'type' => 'incident_status',
                 'priority' => 'high',
                 'title' => 'Case Resolved',
-                'message' => "Case #{$incident->report_number} ({$incident->incident_type}) has been resolved by {$investigatorName}.",
+                'message' => "Case #{$incident->report_number} ({$incident->incident_type}) has been resolved by {$investigatorName}. Resolution summary: {$resolutionSummary}",
                 'action_url' => $actionUrl,
             ]);
 
@@ -230,7 +226,7 @@ class IncidentReportController extends Controller
                 'incident_id' => $incident->id,
                 'investigator_id' => $investigator?->id,
                 'action_type' => 'incident_status',
-                'action_performed' => "Resolved case #{$incident->report_number} ({$incident->incident_type}).",
+                'action_performed' => "Resolved case #{$incident->report_number} ({$incident->incident_type}). Summary: {$resolutionSummary}",
             ]);
         }
 

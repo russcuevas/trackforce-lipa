@@ -97,6 +97,9 @@
 
     @php
         $incidentDateTime = $incident->time_completed ?? ($incident->time_documented ?? $incident->time_reported);
+        $statusLower = strtolower(trim((string) ($incident->status ?? '')));
+        $hasResolutionSummary =
+            in_array($statusLower, ['resolved', 'completed', 'closed'], true) && filled($incident->resolved_statement);
         $investigatorName = trim((string) ($incident->investigator_name ?? ''));
         $investigatorLabel = $investigatorName !== '' ? $investigatorName : 'Unassigned';
         if (!empty($incident->investigator_badge_number)) {
@@ -229,6 +232,16 @@
                 </p>
             @endif
         </div>
+
+        @if ($hasResolutionSummary)
+            <div class="mb-4">
+                <h3 class="bg-gray-doc px-2 py-1 text-[10px] font-black border-t border-b border-black mb-1 uppercase">
+                    Resolution Summary</h3>
+                <p class="text-[11px] leading-tight text-justify italic whitespace-pre-line">
+                    <span class="font-bold not-italic">Investigator :</span> {{ $incident->resolved_statement }}
+                </p>
+            </div>
+        @endif
 
         <div class="grid grid-cols-1 gap-4 mb-6">
             <div>

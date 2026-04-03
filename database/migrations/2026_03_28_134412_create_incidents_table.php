@@ -33,6 +33,7 @@ return new class extends Migration
 
             // Status & Analytics
             $table->string('status')->nullable();
+            $table->string('resolved_statement')->nullable();
             $table->timestamp('time_reported')->useCurrent();
             $table->dateTime('time_documented')->nullable();
             $table->dateTime('time_completed')->nullable();
