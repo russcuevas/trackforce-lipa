@@ -49,6 +49,12 @@
         .stat-card:hover {
             transform: translateY(-3px);
         }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 2rem;
+            text-align: center;
+            border-radius: 0.5rem !important;
+        }
     </style>
 
     <style>
@@ -164,7 +170,11 @@
                 responsive: true,
                 language: {
                     search: "_INPUT_",
-                    searchPlaceholder: "Search records..."
+                    searchPlaceholder: "Search records...",
+                    paginate: {
+                        previous: '<',
+                        next: '>'
+                    }
                 }
             });
 

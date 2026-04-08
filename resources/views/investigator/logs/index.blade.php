@@ -48,6 +48,12 @@
             margin-bottom: 1rem;
             outline: none;
         }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 2rem;
+            text-align: center;
+            border-radius: 0.5rem !important;
+        }
     </style>
 </head>
 
@@ -167,7 +173,11 @@
                 responsive: true,
                 language: {
                     search: "_INPUT_",
-                    searchPlaceholder: "Search"
+                    searchPlaceholder: "Search",
+                    paginate: {
+                        previous: '<',
+                        next: '>'
+                    }
                 }
             });
         });
