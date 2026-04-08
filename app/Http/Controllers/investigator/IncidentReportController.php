@@ -272,6 +272,11 @@ class IncidentReportController extends Controller
             'party.*.license_number' => 'nullable|string',
             'party.*.severity' => 'nullable|string|max:50',
             'party.*.statement' => 'nullable|string',
+            'vehicle_type.*' => 'nullable|string|max:50',
+            'vehicle_type_other.*' => 'nullable|string|max:50',
+            'plate_number.*' => 'nullable|string|max:20',
+            'vehicle_specific_name.*' => 'nullable|string|max:100',
+            'vehicle_color.*' => 'nullable|string|max:30',
         ], [
             'incident_type_other.required_if' => 'Please specify the incident type when selecting Other.',
         ]);
@@ -335,6 +340,40 @@ class IncidentReportController extends Controller
                     'license_number' => $licenseNumber !== '' ? $licenseNumber : null,
                     'injury_severity' => $severity !== '' ? $severity : null,
                     'statement' => $statement !== '' ? $statement : null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            DB::table('vehicles')
+                ->where('incident_id', $incident->id)
+                ->delete();
+
+            $vehicleTypes = $request->input('vehicle_type', []);
+            $vehicleTypeOthers = $request->input('vehicle_type_other', []);
+            $plateNumbers = $request->input('plate_number', []);
+            $vehicleSpecificNames = $request->input('vehicle_specific_name', []);
+            $vehicleColors = $request->input('vehicle_color', []);
+
+            foreach ($vehicleTypes as $index => $vehicleTypeRaw) {
+                $vehicleTypeRaw = trim((string) $vehicleTypeRaw);
+                $vehicleTypeOther = trim((string) ($vehicleTypeOthers[$index] ?? ''));
+                $vehicleType = $vehicleTypeRaw === 'Other' ? $vehicleTypeOther : $vehicleTypeRaw;
+
+                $plate = trim((string) ($plateNumbers[$index] ?? ''));
+                $specificName = trim((string) ($vehicleSpecificNames[$index] ?? ''));
+                $color = trim((string) ($vehicleColors[$index] ?? ''));
+
+                if ($vehicleType === '' && $plate === '' && $specificName === '' && $color === '') {
+                    continue;
+                }
+
+                DB::table('vehicles')->insert([
+                    'incident_id' => $incident->id,
+                    'vehicle_type' => $vehicleType !== '' ? $vehicleType : null,
+                    'plate_number' => $plate !== '' ? $plate : null,
+                    'specific_name' => $specificName !== '' ? $specificName : null,
+                    'color' => $color !== '' ? $color : null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

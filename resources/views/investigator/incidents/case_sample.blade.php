@@ -132,6 +132,79 @@
                 ];
             }
 
+            $vehicleTypeOptions = ['Motorcycle', 'Private Car', 'PUJ', 'Truck', 'Bicycle', 'Other'];
+
+            $hasOldVehicleInput =
+                old('vehicle_type') !== null ||
+                old('vehicle_type_other') !== null ||
+                old('plate_number') !== null ||
+                old('vehicle_specific_name') !== null ||
+                old('vehicle_color') !== null;
+
+            if ($hasOldVehicleInput) {
+                $oldVehicleTypes = array_values((array) old('vehicle_type', []));
+                $oldVehicleTypeOthers = array_values((array) old('vehicle_type_other', []));
+                $oldPlateNumbers = array_values((array) old('plate_number', []));
+                $oldVehicleSpecificNames = array_values((array) old('vehicle_specific_name', []));
+                $oldVehicleColors = array_values((array) old('vehicle_color', []));
+
+                $maxVehicleItems = max(
+                    count($oldVehicleTypes),
+                    count($oldVehicleTypeOthers),
+                    count($oldPlateNumbers),
+                    count($oldVehicleSpecificNames),
+                    count($oldVehicleColors),
+                );
+
+                $editableVehicles = collect(range(0, max(0, $maxVehicleItems - 1)))
+                    ->map(function ($index) use (
+                        $oldVehicleTypes,
+                        $oldVehicleTypeOthers,
+                        $oldPlateNumbers,
+                        $oldVehicleSpecificNames,
+                        $oldVehicleColors,
+                    ) {
+                        return [
+                            'uid' => (string) \Illuminate\Support\Str::uuid(),
+                            'type' => (string) ($oldVehicleTypes[$index] ?? 'Motorcycle'),
+                            'type_other' => (string) ($oldVehicleTypeOthers[$index] ?? ''),
+                            'plate_number' => (string) ($oldPlateNumbers[$index] ?? ''),
+                            'specific_name' => (string) ($oldVehicleSpecificNames[$index] ?? ''),
+                            'color' => (string) ($oldVehicleColors[$index] ?? ''),
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            } else {
+                $editableVehicles = $vehicles
+                    ->map(function ($vehicle) use ($vehicleTypeOptions) {
+                        $rawVehicleType = (string) data_get($vehicle, 'vehicle_type', '');
+                        $isKnownType = in_array($rawVehicleType, $vehicleTypeOptions, true);
+
+                        return [
+                            'uid' => (string) \Illuminate\Support\Str::uuid(),
+                            'type' => $isKnownType ? $rawVehicleType : 'Other',
+                            'type_other' => $isKnownType ? '' : $rawVehicleType,
+                            'plate_number' => (string) data_get($vehicle, 'plate_number', ''),
+                            'specific_name' => (string) data_get($vehicle, 'specific_name', ''),
+                            'color' => (string) data_get($vehicle, 'color', ''),
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            }
+
+            if (empty($editableVehicles)) {
+                $editableVehicles[] = [
+                    'uid' => (string) \Illuminate\Support\Str::uuid(),
+                    'type' => 'Motorcycle',
+                    'type_other' => '',
+                    'plate_number' => '',
+                    'specific_name' => '',
+                    'color' => '',
+                ];
+            }
+
             $showEditModalOnLoad = old('edit_case_details') === '1';
             $assignedInvestigator = $incident->assignedInvestigator;
 
@@ -209,7 +282,7 @@
         @endphp
 
         <main
-            x-data='caseDetailsEditor({ initialParties: @json($editableParties), initialIncidentType: @json($selectedIncidentType), openOnLoad: @json($showEditModalOnLoad) })'
+            x-data='caseDetailsEditor({ initialParties: @json($editableParties), initialVehicles: @json($editableVehicles), initialIncidentType: @json($selectedIncidentType), openOnLoad: @json($showEditModalOnLoad) })'
             class="flex-1 overflow-y-auto p-6 bg-gray-50">
 
             <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -772,6 +845,94 @@
                                             </template>
                                         </div>
                                     </section>
+
+                                    <section class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                                        <div class="flex justify-between items-center mb-4 gap-3 flex-wrap">
+                                            <div>
+                                                <h3
+                                                    class="text-[10px] font-black text-tf-blue uppercase tracking-widest">
+                                                    Vehicles Involved</h3>
+                                                <p class="text-[10px] font-bold text-gray-400 mt-1">Add, remove, or
+                                                    revise the involved vehicles for this case.</p>
+                                            </div>
+                                            <button type="button" @click="addVehicle()"
+                                                class="bg-tf-blue hover:bg-blue-950 text-white px-4 py-2 rounded-xl text-[11px] font-black flex items-center gap-2 shadow-sm">
+                                                <i class="fa-solid fa-plus text-tf-yellow"></i> ADD VEHICLE
+                                            </button>
+                                        </div>
+
+                                        <div class="space-y-4">
+                                            <template x-for="(vehicle, index) in involvedVehicles"
+                                                :key="vehicle.uid">
+                                                <div
+                                                    class="p-4 bg-gray-50 rounded-2xl border border-gray-200 relative">
+                                                    <button type="button" @click="removeVehicle(index)"
+                                                        class="absolute top-3 right-3 text-gray-300 hover:text-red-500">
+                                                        <i class="fa-solid fa-circle-xmark text-lg"></i>
+                                                    </button>
+
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label
+                                                                class="text-[10px] font-black text-gray-400 uppercase ml-1">Vehicle
+                                                                Type</label>
+                                                            <select :name="`vehicle_type[${index}]`"
+                                                                x-model="vehicle.type"
+                                                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold">
+                                                                <option value="Motorcycle">Motorcycle</option>
+                                                                <option value="Private Car">Private Car</option>
+                                                                <option value="PUJ">PUJ (Jeepney)</option>
+                                                                <option value="Truck">Truck</option>
+                                                                <option value="Bicycle">Bicycle</option>
+                                                                <option value="Other">Other</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div x-show="vehicle.type === 'Other'" x-cloak>
+                                                            <label
+                                                                class="text-[10px] font-black text-gray-400 uppercase ml-1">Specify
+                                                                Vehicle Type</label>
+                                                            <input type="text"
+                                                                :name="`vehicle_type_other[${index}]`"
+                                                                x-model="vehicle.type_other"
+                                                                placeholder="e.g. Tricycle"
+                                                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold">
+                                                        </div>
+
+                                                        <div>
+                                                            <label
+                                                                class="text-[10px] font-black text-gray-400 uppercase ml-1">Plate
+                                                                Number</label>
+                                                            <input type="text" :name="`plate_number[${index}]`"
+                                                                x-model="vehicle.plate_number"
+                                                                placeholder="Plate Number"
+                                                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold">
+                                                        </div>
+
+                                                        <div>
+                                                            <label
+                                                                class="text-[10px] font-black text-gray-400 uppercase ml-1">Specific
+                                                                Name</label>
+                                                            <input type="text"
+                                                                :name="`vehicle_specific_name[${index}]`"
+                                                                x-model="vehicle.specific_name"
+                                                                placeholder="e.g. Honda Click"
+                                                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold">
+                                                        </div>
+
+                                                        <div class="md:col-span-2">
+                                                            <label
+                                                                class="text-[10px] font-black text-gray-400 uppercase ml-1">Vehicle
+                                                                Color</label>
+                                                            <input type="text" :name="`vehicle_color[${index}]`"
+                                                                x-model="vehicle.color" placeholder="Vehicle Color"
+                                                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </section>
                                 </div>
                             </form>
 
@@ -804,8 +965,10 @@
                 openEditModal: Boolean(config.openOnLoad),
                 incidentType: config.initialIncidentType || 'Accident',
                 involvedParties: [],
+                involvedVehicles: [],
                 init() {
                     const parties = Array.isArray(config.initialParties) ? config.initialParties : [];
+                    const vehicles = Array.isArray(config.initialVehicles) ? config.initialVehicles : [];
 
                     this.involvedParties = parties.length ?
                         parties.map((party, index) => ({
@@ -818,6 +981,16 @@
                             license_number: party.license_number || '',
                             statement: party.statement || ''
                         })) : [this.makeParty()];
+
+                    this.involvedVehicles = vehicles.length ?
+                        vehicles.map((vehicle, index) => ({
+                            uid: vehicle.uid || `${Date.now()}-vehicle-${index}`,
+                            type: vehicle.type || 'Motorcycle',
+                            type_other: vehicle.type_other || '',
+                            plate_number: vehicle.plate_number || '',
+                            specific_name: vehicle.specific_name || '',
+                            color: vehicle.color || ''
+                        })) : [this.makeVehicle()];
                 },
                 makeParty() {
                     return {
@@ -831,6 +1004,16 @@
                         statement: ''
                     };
                 },
+                makeVehicle() {
+                    return {
+                        uid: `${Date.now()}-${Math.random()}-vehicle`,
+                        type: 'Motorcycle',
+                        type_other: '',
+                        plate_number: '',
+                        specific_name: '',
+                        color: ''
+                    };
+                },
                 addParty() {
                     this.involvedParties.push(this.makeParty());
                 },
@@ -841,6 +1024,17 @@
                     }
 
                     this.involvedParties.splice(index, 1);
+                },
+                addVehicle() {
+                    this.involvedVehicles.push(this.makeVehicle());
+                },
+                removeVehicle(index) {
+                    if (this.involvedVehicles.length === 1) {
+                        this.involvedVehicles.splice(0, 1, this.makeVehicle());
+                        return;
+                    }
+
+                    this.involvedVehicles.splice(index, 1);
                 }
             };
         }
