@@ -41,6 +41,83 @@
             text-align: center;
             border-radius: 0.5rem !important;
         }
+
+        /* ── DataTable custom overrides ── */
+        table.dataTable thead th,
+        table.dataTable thead td {
+            border-bottom: 2px solid #e5e7eb !important;
+        }
+
+        table.dataTable tbody tr {
+            border-bottom: 1px solid #f3f4f6 !important;
+        }
+
+        table.dataTable.no-footer {
+            border-bottom: none !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: #0B3D91;
+            box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.12);
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border-radius: 0.5rem !important;
+            font-size: 0.8rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: #0B3D91 !important;
+            color: #fff !important;
+            border: 1px solid #0B3D91 !important;
+            border-radius: 0.5rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e8edf7 !important;
+            color: #0B3D91 !important;
+            border: 1px solid #e8edf7 !important;
+        }
+
+        #docsTable thead th,
+        #docsTable thead td {
+            background-color: #0B3D91 !important;
+            color: #ffffff !important;
+        }
+
+        #docsTable thead th.sorting,
+        #docsTable thead th.sorting_asc,
+        #docsTable thead th.sorting_desc {
+            background-color: #0B3D91 !important;
+            color: #ffffff !important;
+        }
+
+        #docsTable thead th:hover {
+            background-color: #0a3480 !important;
+        }
     </style>
 </head>
 
@@ -60,23 +137,35 @@
                 </div>
             </div>
 
-            <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <section class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+                <!-- Table header bar -->
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#0B3D91]/5 to-white">
+                    <div class="flex items-center gap-2">
+                        <span class="h-5 w-1 rounded-full bg-[#0B3D91] inline-block"></span>
+                        <span class="text-xs font-bold text-[#0B3D91] uppercase tracking-widest">Documentation
+                            Records</span>
+                    </div>
+                    <span class="text-xs text-gray-400 italic">Monthly grouped incident reports</span>
+                </div>
                 <div class="p-6">
                     <div class="w-full overflow-x-auto">
 
                         <table id="docsTable" class="display w-full text-sm">
-                            <thead class="bg-gray-50 text-tf-blue uppercase text-[11px] font-black">
-                                <tr>
-                                    <th class="py-4 px-4 text-left">Month/Year</th>
+                            <thead>
+                                <tr class="bg-[#0B3D91] text-white uppercase text-[11px] font-black">
+                                    <th class="py-4 px-4 text-left rounded-tl-lg">Month/Year</th>
                                     <th class="py-4 px-4 text-left">No. of Reports</th>
-                                    <th class="py-4 px-4 text-center">Action</th>
+                                    <th class="py-4 px-4 text-center rounded-tr-lg">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($monthlyIncidentReports as $group)
-                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <tr
+                                        class="group border-l-4 border-l-transparent hover:border-l-[#0B3D91] hover:bg-blue-50/40 transition-all duration-150">
                                         <td class="py-4 px-4">
-                                            <i class="fa-solid fa-folder text-tf-yellow text-2xl"></i>
+                                            <i
+                                                class="fa-solid fa-folder text-tf-yellow text-2xl group-hover:scale-110 transition-transform duration-200"></i>
                                             &nbsp;
                                             <span class="font-bold text-gray-700">
                                                 {{ \Illuminate\Support\Carbon::createFromDate((int) $group->year_value, (int) $group->month_value, 1)->format('F Y') }}

@@ -41,17 +41,83 @@
         }
 
         /* DataTables Customization */
+        table.dataTable thead th,
+        table.dataTable thead td {
+            border-bottom: 2px solid #e5e7eb !important;
+        }
+
+        table.dataTable tbody tr {
+            border-bottom: 1px solid #f3f4f6 !important;
+            background-color: transparent !important;
+        }
+
+        table.dataTable.no-footer {
+            border-bottom: none !important;
+        }
+
         .dataTables_wrapper .dataTables_filter input {
-            border: 1px solid #e5e7eb;
+            border: 1px solid #d1d5db;
             border-radius: 0.5rem;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: #0B3D91;
+            box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.12);
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            font-size: 0.8rem;
+            color: #6b7280;
         }
 
         .dataTables_wrapper .dataTables_paginate .paginate_button {
             min-width: 2rem;
             text-align: center;
             border-radius: 0.5rem !important;
+            font-size: 0.8rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: #0B3D91 !important;
+            color: #fff !important;
+            border: 1px solid #0B3D91 !important;
+            border-radius: 0.5rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e8edf7 !important;
+            color: #0B3D91 !important;
+            border: 1px solid #e8edf7 !important;
+        }
+
+        #reportsTable thead th,
+        #reportsTable thead td {
+            background-color: #0B3D91 !important;
+            color: #ffffff !important;
+        }
+
+        #reportsTable thead th.sorting,
+        #reportsTable thead th.sorting_asc,
+        #reportsTable thead th.sorting_desc {
+            background-color: #0B3D91 !important;
+            color: #ffffff !important;
+        }
+
+        #reportsTable thead th:hover {
+            background-color: #0a3480 !important;
         }
     </style>
 </head>
@@ -118,18 +184,28 @@
                 </button>
             </div>
 
-            <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <section class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+                <!-- Table header bar -->
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#0B3D91]/5 to-white">
+                    <div class="flex items-center gap-2">
+                        <span class="h-5 w-1 rounded-full bg-[#0B3D91] inline-block"></span>
+                        <span class="text-xs font-bold text-[#0B3D91] uppercase tracking-widest">Incident Case
+                            Records</span>
+                    </div>
+                    <span class="text-xs text-gray-400 italic">All submitted incident reports</span>
+                </div>
                 <div class="p-6">
                     <div class="w-full overflow-x-auto">
 
                         <table id="reportsTable" class="display w-full text-sm">
-                            <thead class="bg-gray-50 text-tf-blue uppercase text-[11px] font-black">
-                                <tr>
-                                    <th class="py-4 px-4 text-left">Case ID</th>
+                            <thead>
+                                <tr class="bg-[#0B3D91] text-white uppercase text-[11px] font-black">
+                                    <th class="py-4 px-4 text-left rounded-tl-lg">Case ID</th>
                                     <th class="py-4 px-4 text-left">Incident Details</th>
                                     <th class="py-4 px-4 text-left">Location</th>
                                     <th class="py-4 px-4 text-left">Status</th>
-                                    <th class="py-4 px-4 text-center">Actions</th>
+                                    <th class="py-4 px-4 text-center rounded-tr-lg">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -162,10 +238,13 @@
                                         $reportedAt = $incident->time_reported ?? $incident->created_at;
                                     @endphp
 
-                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <tr class="group hover:bg-blue-50/40 transition-all duration-150">
                                         <td class="py-4 px-4 border-l-4 {{ $borderColor }}">
                                             <span
-                                                class="font-bold text-gray-400">#{{ $incident->report_number ?? 'INC-' . $incident->id }}</span>
+                                                class="inline-flex items-center gap-1 font-mono text-xs font-bold text-[#0B3D91] bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full tracking-wide">
+                                                <i class="fa-solid fa-id-badge text-[10px] opacity-60"></i>
+                                                #{{ $incident->report_number ?? 'INC-' . $incident->id }}
+                                            </span>
                                         </td>
                                         <td class="py-4 px-4">
                                             <p class="font-bold text-gray-700">{{ $incident->incident_type ?? 'N/A' }}
@@ -181,7 +260,19 @@
                                         </td>
                                         <td class="py-4 px-4">
                                             <span
-                                                class="{{ $statusStyles }} px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter">
+                                                class="{{ $statusStyles }} inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider">
+                                                @php
+                                                    $dot = match (true) {
+                                                        in_array($statusLower, ['pending', 'pending review'])
+                                                            => 'bg-red-500',
+                                                        $statusLower === 'accepted' => 'bg-blue-500',
+                                                        $statusLower === 'under investigation' => 'bg-yellow-500',
+                                                        $statusLower === 'resolved' => 'bg-green-500',
+                                                        $statusLower === 'declined' => 'bg-gray-400',
+                                                        default => 'bg-gray-400',
+                                                    };
+                                                @endphp
+                                                <span class="h-1.5 w-1.5 rounded-full {{ $dot }}"></span>
                                                 {{ $statusRaw !== '' ? $statusRaw : 'Pending' }}
                                             </span>
                                         </td>

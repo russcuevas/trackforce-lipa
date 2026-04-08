@@ -41,6 +41,83 @@
             text-align: center;
             border-radius: 0.5rem !important;
         }
+
+        /* ── DataTable custom overrides ── */
+        table.dataTable thead th,
+        table.dataTable thead td {
+            border-bottom: 2px solid #e5e7eb !important;
+        }
+
+        table.dataTable tbody tr {
+            border-bottom: 1px solid #f3f4f6 !important;
+        }
+
+        table.dataTable.no-footer {
+            border-bottom: none !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: #0B3D91;
+            box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.12);
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border-radius: 0.5rem !important;
+            font-size: 0.8rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: #0B3D91 !important;
+            color: #fff !important;
+            border: 1px solid #0B3D91 !important;
+            border-radius: 0.5rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e8edf7 !important;
+            color: #0B3D91 !important;
+            border: 1px solid #e8edf7 !important;
+        }
+
+        #resolvedReportsTable thead th,
+        #resolvedReportsTable thead td {
+            background-color: #0B3D91 !important;
+            color: #ffffff !important;
+        }
+
+        #resolvedReportsTable thead th.sorting,
+        #resolvedReportsTable thead th.sorting_asc,
+        #resolvedReportsTable thead th.sorting_desc {
+            background-color: #0B3D91 !important;
+            color: #ffffff !important;
+        }
+
+        #resolvedReportsTable thead th:hover {
+            background-color: #0a3480 !important;
+        }
     </style>
 </head>
 
@@ -67,24 +144,40 @@
                 </a>
             </div>
 
-            <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <section class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+                <!-- Table header bar -->
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#0B3D91]/5 to-white">
+                    <div class="flex items-center gap-2">
+                        <span class="h-5 w-1 rounded-full bg-[#0B3D91] inline-block"></span>
+                        <span class="text-xs font-bold text-[#0B3D91] uppercase tracking-widest">Incident Report
+                            Records</span>
+                    </div>
+                    <span class="text-xs text-gray-400 italic">Resolved incident cases for this period</span>
+                </div>
                 <div class="p-6">
                     <div class="w-full overflow-x-auto">
                         <table id="resolvedReportsTable" class="display w-full text-sm">
-                            <thead class="bg-gray-50 text-tf-blue uppercase text-[11px] font-black">
-                                <tr>
-                                    <th class="py-4 px-4 text-left">Report No.</th>
+                            <thead>
+                                <tr class="bg-[#0B3D91] text-white uppercase text-[11px] font-black">
+                                    <th class="py-4 px-4 text-left rounded-tl-lg">Report No.</th>
                                     <th class="py-4 px-4 text-left">Incident Type</th>
                                     <th class="py-4 px-4 text-left">Location</th>
                                     <th class="py-4 px-4 text-left">Status</th>
                                     <th class="py-4 px-4 text-left">Reported At</th>
-                                    <th class="py-4 px-4 text-center">Action</th>
+                                    <th class="py-4 px-4 text-center rounded-tr-lg">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @forelse ($incidents as $incident)
-                                    <tr class="hover:bg-gray-50/50 transition-colors">
-                                        <td class="py-4 px-4 font-bold text-gray-500">#{{ $incident->report_number }}
+                                    <tr
+                                        class="group border-l-4 border-l-transparent hover:border-l-[#0B3D91] hover:bg-blue-50/40 transition-all duration-150">
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="inline-flex items-center gap-1 font-mono text-xs font-bold text-[#0B3D91] bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full tracking-wide">
+                                                <i class="fa-solid fa-file-lines text-[10px] opacity-60"></i>
+                                                #{{ $incident->report_number }}
+                                            </span>
                                         </td>
                                         <td class="py-4 px-4 font-medium text-gray-700">{{ $incident->incident_type }}
                                         </td>
@@ -102,12 +195,24 @@
                                                 };
                                             @endphp
                                             <span
-                                                class="{{ $statusClass }} px-2 py-1 rounded text-[10px] font-black uppercase">
+                                                class="{{ $statusClass }} inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider">
+                                                @php
+                                                    $dot = match ($statusKey) {
+                                                        'pending' => 'bg-red-500',
+                                                        'under investigation' => 'bg-yellow-500',
+                                                        'resolved' => 'bg-green-500',
+                                                        default => 'bg-gray-400',
+                                                    };
+                                                @endphp
+                                                <span class="h-1.5 w-1.5 rounded-full {{ $dot }}"></span>
                                                 {{ $statusValue }}
                                             </span>
                                         </td>
-                                        <td class="py-4 px-4 text-gray-500">
-                                            {{ \Illuminate\Support\Carbon::parse($incident->created_at ?? $incident->time_completed)->format('M d, Y h:i A') }}
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-1.5 text-gray-500 text-sm">
+                                                <i class="fa-regular fa-calendar text-gray-400 text-xs"></i>
+                                                {{ \Illuminate\Support\Carbon::parse($incident->created_at ?? $incident->time_completed)->format('M d, Y h:i A') }}
+                                            </div>
                                         </td>
                                         <td class="py-4 px-4 text-center">
                                             <a href="{{ route('investigator.documentation.print.report.page', ['incident' => (int) $incident->id]) }}"

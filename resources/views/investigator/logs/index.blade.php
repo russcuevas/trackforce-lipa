@@ -37,22 +37,83 @@
         }
 
         /* Custom Table Styling for Logs */
+        table.dataTable thead th,
+        table.dataTable thead td {
+            border-bottom: 2px solid #e5e7eb !important;
+        }
+
         table.dataTable tbody tr {
             background-color: transparent !important;
+            border-bottom: 1px solid #f3f4f6 !important;
+        }
+
+        table.dataTable.no-footer {
+            border-bottom: none !important;
         }
 
         .dataTables_wrapper .dataTables_filter input {
-            border: 1px solid #e5e7eb;
+            border: 1px solid #d1d5db;
             border-radius: 0.5rem;
-            padding: 0.5rem 1rem;
-            margin-bottom: 1rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
             outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: #0B3D91;
+            box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.12);
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            font-size: 0.8rem;
+            color: #6b7280;
         }
 
         .dataTables_wrapper .dataTables_paginate .paginate_button {
             min-width: 2rem;
             text-align: center;
             border-radius: 0.5rem !important;
+            font-size: 0.8rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: #0B3D91 !important;
+            color: #fff !important;
+            border: 1px solid #0B3D91 !important;
+            border-radius: 0.5rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e8edf7 !important;
+            color: #0B3D91 !important;
+            border: 1px solid #e8edf7 !important;
+        }
+
+        #logsTable thead th,
+        #logsTable thead td {
+            background-color: #0B3D91 !important;
+            color: #ffffff !important;
+        }
+
+        #logsTable thead th.sorting,
+        #logsTable thead th.sorting_asc,
+        #logsTable thead th.sorting_desc {
+            background-color: #0B3D91 !important;
+            color: #ffffff !important;
+        }
+
+        #logsTable thead th:hover {
+            background-color: #0a3480 !important;
         }
     </style>
 </head>
@@ -89,22 +150,32 @@
                 </div>
             </div>
 
-            <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <section class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+                <!-- Table header bar -->
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#0B3D91]/5 to-white">
+                    <div class="flex items-center gap-2">
+                        <span class="h-5 w-1 rounded-full bg-[#0B3D91] inline-block"></span>
+                        <span class="text-xs font-bold text-[#0B3D91] uppercase tracking-widest">Audit Trail
+                            Records</span>
+                    </div>
+                    <span class="text-xs text-gray-400 italic">System-wide activity log</span>
+                </div>
                 <div class="p-6">
                     <div class="w-full overflow-x-auto">
 
                         <table id="logsTable" class="display w-full text-sm">
-                            <thead class="bg-gray-50 text-tf-blue uppercase text-[11px] font-black">
-                                <tr>
-                                    <th class="py-4 px-4 text-left">Log ID</th>
+                            <thead>
+                                <tr class="bg-[#0B3D91] text-white uppercase text-[11px] font-black">
+                                    <th class="py-4 px-4 text-left rounded-tl-lg">Log ID</th>
                                     <th class="py-4 px-4 text-left">Ref</th>
                                     <th class="py-4 px-4 text-left">Investigator</th>
                                     <th class="py-4 px-4 text-left">Action Performed</th>
-                                    <th class="py-4 px-4 text-left">Timestamp</th>
+                                    <th class="py-4 px-4 text-left rounded-tr-lg">Timestamp</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                @forelse ($logs as $log)
+                                @foreach ($logs as $log)
                                     @php
                                         $incidentReference = $log->incident?->report_number;
                                         $investigatorName = $log->investigator?->full_name;
@@ -116,8 +187,15 @@
                                         $iconClass =
                                             $actionIcons[$log->action_type] ?? 'fa-clock-rotate-left text-gray-500';
                                     @endphp
-                                    <tr class="hover:bg-gray-50/50 transition-colors">
-                                        <td class="py-4 px-4 text-gray-400 font-mono">#LOG-{{ $log->id }}</td>
+                                    <tr
+                                        class="group border-l-4 border-l-transparent hover:border-l-[#0B3D91] hover:bg-blue-50/40 transition-all duration-150">
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="inline-flex items-center gap-1 font-mono text-xs font-bold text-[#0B3D91] bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full tracking-wide">
+                                                <i class="fa-solid fa-list-check text-[10px] opacity-60"></i>
+                                                #LOG-{{ $log->id }}
+                                            </span>
+                                        </td>
                                         <td class="py-4 px-4">
                                             @if ($incidentReference)
                                                 <span
@@ -134,7 +212,7 @@
                                         <td class="py-4 px-4">
                                             <div class="flex items-center gap-2">
                                                 <div
-                                                    class="h-6 w-6 rounded-full bg-tf-blue text-white flex items-center justify-center text-[10px] font-bold">
+                                                    class="h-8 w-8 rounded-full bg-gradient-to-br from-[#0B3D91] to-blue-400 text-white flex items-center justify-center text-[10px] font-bold shadow-sm shrink-0">
                                                     {{ $initials !== '' ? $initials : 'SY' }}</div>
                                                 <span
                                                     class="font-medium text-gray-700">{{ $investigatorName ?: 'System / Public User' }}</span>
@@ -146,16 +224,14 @@
                                                 <span class="text-gray-600">{{ $log->action_performed }}</span>
                                             </div>
                                         </td>
-                                        <td class="py-4 px-4 text-gray-500 text-xs">
-                                            {{ $log->created_at ? $log->created_at->format('F d, Y | h:i A') : 'N/A' }}
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-1.5 text-gray-500 text-xs">
+                                                <i class="fa-regular fa-calendar text-gray-400 text-xs"></i>
+                                                {{ $log->created_at ? $log->created_at->format('F d, Y | h:i A') : 'N/A' }}
+                                            </div>
                                         </td>
                                     </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="py-10 px-4 text-center text-sm text-gray-400">No audit
-                                            logs recorded yet.</td>
-                                    </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
