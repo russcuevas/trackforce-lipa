@@ -531,10 +531,30 @@
                                         'http://',
                                         'https://',
                                         '/storage/',
+                                        '/evidences/',
                                     ]);
-                                    $assetPath = $isAbsolute
-                                        ? $rawPath
-                                        : asset('storage/evidence/' . ltrim($rawPath, '/'));
+                                    if ($isAbsolute) {
+                                        $assetPath = $rawPath;
+                                    } else {
+                                        $normalizedPath = ltrim($rawPath, '/');
+
+                                        if ($normalizedPath === '') {
+                                            $assetPath = '';
+                                        } elseif (str_contains($normalizedPath, '/')) {
+                                            if (file_exists(public_path($normalizedPath))) {
+                                                $assetPath = asset($normalizedPath);
+                                            } else {
+                                                $assetPath = asset('storage/' . $normalizedPath);
+                                            }
+                                        } else {
+                                            $newPath = 'evidences/' . $normalizedPath;
+                                            if (file_exists(public_path($newPath))) {
+                                                $assetPath = asset($newPath);
+                                            } else {
+                                                $assetPath = asset('storage/evidence/' . $normalizedPath);
+                                            }
+                                        }
+                                    }
                                 @endphp
                                 <a href="{{ $assetPath }}" target="_blank"
                                     class="aspect-square rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden relative group cursor-pointer">

@@ -5,8 +5,17 @@
         $badgeNumber = $investigator->badge_number ?? 'N/A';
         $unreadCount = $investigatorNotificationUnreadCount ?? 0;
         $recentNotifications = $investigatorRecentNotifications ?? collect();
-        $profileImage =
-            $investigator && $investigator->profile_image ? asset('storage/' . $investigator->profile_image) : null;
+        $profileImage = null;
+        if ($investigator && $investigator->profile_image) {
+            $profilePath = ltrim((string) $investigator->profile_image, '/');
+            if (\Illuminate\Support\Str::startsWith($profilePath, ['http://', 'https://'])) {
+                $profileImage = $profilePath;
+            } elseif (file_exists(public_path($profilePath))) {
+                $profileImage = asset($profilePath);
+            } else {
+                $profileImage = asset('storage/' . $profilePath);
+            }
+        }
         $initials = \Illuminate\Support\Str::of($fullName)
             ->explode(' ')
             ->filter()

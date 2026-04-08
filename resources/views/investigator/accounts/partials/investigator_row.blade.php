@@ -10,6 +10,18 @@
         'suspended' => 'bg-red-100 text-red-700',
         default => 'bg-green-100 text-green-700',
     };
+
+    $profileImagePath = ltrim((string) ($investigator->profile_image ?? ''), '/');
+    $profileImageUrl = null;
+    if ($profileImagePath !== '') {
+        if (\Illuminate\Support\Str::startsWith($profileImagePath, ['http://', 'https://'])) {
+            $profileImageUrl = $profileImagePath;
+        } elseif (file_exists(public_path($profileImagePath))) {
+            $profileImageUrl = asset($profileImagePath);
+        } else {
+            $profileImageUrl = asset('storage/' . $profileImagePath);
+        }
+    }
 @endphp
 
 <tr id="investigator-row-{{ $investigator->id }}" class="hover:bg-gray-50/50 transition-colors">
@@ -18,9 +30,9 @@
     </td>
     <td class="py-4 px-4">
         <div class="flex items-center gap-3">
-            @if ($investigator->profile_image)
-                <img id="investigator-image-{{ $investigator->id }}"
-                    src="{{ asset('storage/' . $investigator->profile_image) }}" alt="{{ $investigator->full_name }}"
+            @if ($profileImageUrl)
+                <img id="investigator-image-{{ $investigator->id }}" src="{{ $profileImageUrl }}"
+                    alt="{{ $investigator->full_name }}"
                     class="h-8 w-8 rounded-full object-cover border border-slate-200">
             @else
                 <div id="investigator-initials-{{ $investigator->id }}"

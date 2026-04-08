@@ -8,8 +8,8 @@ use App\Models\Investigator;
 use App\Models\InvestigatorNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class AccountController extends Controller
@@ -42,8 +42,7 @@ class AccountController extends Controller
         $validated['password'] = Hash::make($validated['password']);
 
         if ($request->hasFile('profile_image')) {
-            $path = $request->file('profile_image')->store('investigators', 'public');
-            $validated['profile_image'] = $path;
+            $validated['profile_image'] = $this->storeProfileImageToPublic($request->file('profile_image'));
         }
 
         $investigator = Investigator::create($validated);
@@ -117,11 +116,10 @@ class AccountController extends Controller
 
         if ($request->hasFile('profile_image')) {
             if ($investigator->profile_image) {
-                Storage::disk('public')->delete($investigator->profile_image);
+                $this->deleteProfileImage($investigator->profile_image);
             }
 
-            $path = $request->file('profile_image')->store('investigators', 'public');
-            $validated['profile_image'] = $path;
+            $validated['profile_image'] = $this->storeProfileImageToPublic($request->file('profile_image'));
         }
 
         $investigator->update($validated);
@@ -155,8 +153,7 @@ class AccountController extends Controller
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'message' => 'Investigator account updated successfully!',
-                // Add this line to return the new image path
-                'profile_image_url' => $investigator->profile_image ? asset('storage/' . $investigator->profile_image) : null
+                'profile_image_url' => $investigator->profile_image ? $this->resolveProfileImageUrl($investigator->profile_image) : null,
             ]);
         }
 
@@ -171,7 +168,7 @@ class AccountController extends Controller
         $deletedBadge = $investigator->badge_number;
 
         if ($investigator->profile_image) {
-            Storage::disk('public')->delete($investigator->profile_image);
+            $this->deleteProfileImage($investigator->profile_image);
         }
 
         $investigator->delete();
@@ -198,5 +195,54 @@ class AccountController extends Controller
         }
 
         return redirect()->route('investigator.account.page')->with('success', 'Investigator account deleted successfully!');
+    }
+
+    private function storeProfileImageToPublic($file): string
+    {
+        $directory = public_path('investigators');
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        $filename = $file->hashName();
+        $file->move($directory, $filename);
+
+        return 'investigators/' . $filename;
+    }
+
+    private function resolveProfileImageUrl(string $path): string
+    {
+        $cleanPath = ltrim(trim($path), '/');
+        if ($cleanPath === '') {
+            return '';
+        }
+
+        if (str_starts_with($cleanPath, 'http://') || str_starts_with($cleanPath, 'https://')) {
+            return $cleanPath;
+        }
+
+        if (File::exists(public_path($cleanPath))) {
+            return asset($cleanPath);
+        }
+
+        return asset('storage/' . $cleanPath);
+    }
+
+    private function deleteProfileImage(string $path): void
+    {
+        $cleanPath = ltrim(trim($path), '/');
+        if ($cleanPath === '') {
+            return;
+        }
+
+        $publicFile = public_path($cleanPath);
+        if (File::exists($publicFile)) {
+            File::delete($publicFile);
+        }
+
+        $legacyFile = storage_path('app/public/' . $cleanPath);
+        if (File::exists($legacyFile)) {
+            File::delete($legacyFile);
+        }
     }
 }

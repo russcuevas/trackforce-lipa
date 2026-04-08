@@ -1111,40 +1111,23 @@
                         }
 
                         if (verifyResponse.ok && verifyData.success) {
-                            notyf.open({
-                                type: 'success',
-                                message: verifyData.message ||
-                                    'OTP verified successfully. Your report is now confirmed.'
-                            });
+                            const successMessage = verifyData.message ||
+                                'OTP verified successfully. Your report is now confirmed.';
 
-                            closeOtpModal();
-                            form.reset();
-                            otpVerifyForm.reset();
-
-                            if (window.clearEvidencePreview) {
-                                window.clearEvidencePreview();
-                            }
-                            if (window.resetVehicleEntries) {
-                                window.resetVehicleEntries();
+                            try {
+                                localStorage.setItem('tfFlashSuccess', successMessage);
+                            } catch (storageError) {
+                                console.warn('Unable to persist flash message in localStorage.',
+                                    storageError);
                             }
 
-                            const incidentTypeSelect = document.getElementById('incident_type');
-                            const incidentTypeOtherInput = document.getElementById(
-                                'incident_type_other');
-                            if (incidentTypeSelect && incidentTypeOtherInput) {
-                                incidentTypeOtherInput.classList.add('hidden');
-                                incidentTypeOtherInput.required = false;
-                                incidentTypeOtherInput.value = '';
+                            if (window.showPageLoader) {
+                                window.showPageLoader(
+                                    'Verification complete. Redirecting to home page');
                             }
 
-                            if (marker) {
-                                map.removeLayer(marker);
-                                marker = null;
-                            }
-
-                            document.getElementById('lat').value = '';
-                            document.getElementById('lng').value = '';
-                            document.getElementById('location_name').value = '';
+                            window.location.href = @json(route('home.page'));
+                            return;
                         } else {
                             notyf.open({
                                 type: 'error',

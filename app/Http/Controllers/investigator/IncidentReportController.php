@@ -12,6 +12,7 @@ use App\Models\Vehicles;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 
 class IncidentReportController extends Controller
@@ -525,13 +526,18 @@ class IncidentReportController extends Controller
             }
 
             if ($request->hasFile('evidence')) {
+                $evidenceDirectory = public_path('evidences');
+                if (!File::exists($evidenceDirectory)) {
+                    File::makeDirectory($evidenceDirectory, 0755, true);
+                }
+
                 foreach ($request->file('evidence') as $file) {
                     $filename = $file->hashName();
-                    $file->storeAs('evidence', $filename, 'public');
+                    $file->move($evidenceDirectory, $filename);
 
                     DB::table('incident_evidence')->insert([
                         'incident_id' => $incidentId,
-                        'file_path' => $filename,
+                        'file_path' => 'evidences/' . $filename,
                         'file_type' => $file->getClientMimeType(),
                         'uploaded_at' => now(),
                         'created_at' => now(),

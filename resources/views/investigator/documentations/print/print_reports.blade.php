@@ -122,15 +122,25 @@
 
                 if (\Illuminate\Support\Str::startsWith($rawPath, ['http://', 'https://'])) {
                     $url = $rawPath;
+                } elseif (\Illuminate\Support\Str::startsWith($rawPath, '/evidences/')) {
+                    $url = $rawPath;
                 } elseif (\Illuminate\Support\Str::startsWith($rawPath, '/storage/')) {
                     $url = $rawPath;
                 } elseif (\Illuminate\Support\Str::startsWith($normalizedPath, 'storage/')) {
                     $url = asset($normalizedPath);
                 } elseif (str_contains($normalizedPath, '/')) {
-                    $url = asset('storage/' . $normalizedPath);
+                    if (file_exists(public_path($normalizedPath))) {
+                        $url = asset($normalizedPath);
+                    } else {
+                        $url = asset('storage/' . $normalizedPath);
+                    }
                 } else {
-                    // DB stores filename only, while files are under public/storage/evidence.
-                    $url = asset('storage/evidence/' . $normalizedPath);
+                    $newPath = 'evidences/' . $normalizedPath;
+                    if (file_exists(public_path($newPath))) {
+                        $url = asset($newPath);
+                    } else {
+                        $url = asset('storage/evidence/' . $normalizedPath);
+                    }
                 }
 
                 return [

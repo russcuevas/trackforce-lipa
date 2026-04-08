@@ -45,7 +45,17 @@
 <body class="flex flex-col h-screen overflow-hidden">
 
     @php
-        $profileImage = $investigator->profile_image ? asset('storage/' . $investigator->profile_image) : null;
+        $profileImage = null;
+        if ($investigator->profile_image) {
+            $profilePath = ltrim((string) $investigator->profile_image, '/');
+            if (\Illuminate\Support\Str::startsWith($profilePath, ['http://', 'https://'])) {
+                $profileImage = $profilePath;
+            } elseif (file_exists(public_path($profilePath))) {
+                $profileImage = asset($profilePath);
+            } else {
+                $profileImage = asset('storage/' . $profilePath);
+            }
+        }
         $profileInitials = \Illuminate\Support\Str::of($investigator->full_name)
             ->explode(' ')
             ->filter()

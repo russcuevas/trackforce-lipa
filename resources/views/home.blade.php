@@ -12,6 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <style>
         :root {
             --tf-blue: #0B3D91;
@@ -426,6 +427,7 @@
     </section>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script>
         (function() {
             const loader = document.getElementById('pageLoader');
@@ -547,6 +549,62 @@
             window.addEventListener('load', function() {
                 window.setTimeout(hidePageLoader, prefersReducedMotion ? 0 : 420);
             });
+        })();
+    </script>
+    <script>
+        (function() {
+            const notyf = new Notyf({
+                duration: 5000,
+                position: {
+                    x: 'right',
+                    y: 'top'
+                },
+                dismissible: true,
+                types: [{
+                        type: 'success',
+                        background: '#198754',
+                        icon: {
+                            className: 'fa-solid fa-circle-check',
+                            tagName: 'i',
+                            color: 'white'
+                        }
+                    },
+                    {
+                        type: 'error',
+                        background: '#dc3545',
+                        icon: {
+                            className: 'fa-solid fa-triangle-exclamation',
+                            tagName: 'i',
+                            color: 'white'
+                        }
+                    }
+                ]
+            });
+
+            const redirectedSuccess = localStorage.getItem('tfFlashSuccess');
+            if (redirectedSuccess) {
+                notyf.open({
+                    type: 'success',
+                    message: redirectedSuccess
+                });
+                localStorage.removeItem('tfFlashSuccess');
+            }
+
+            @if (session('success'))
+                notyf.open({
+                    type: 'success',
+                    message: @json(session('success'))
+                });
+            @endif
+
+            @if ($errors->any())
+                @foreach ($errors->all() as $error)
+                    notyf.open({
+                        type: 'error',
+                        message: @json($error)
+                    });
+                @endforeach
+            @endif
         })();
     </script>
 </body>
