@@ -172,6 +172,17 @@
             color: #0f172a;
         }
 
+        .breakdown-chart-wrap {
+            width: min(100%, 230px);
+            height: 230px;
+            margin: 0 auto;
+        }
+
+        .breakdown-chart-wrap canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
         @media (max-width: 640px) {
             .map-header {
                 flex-direction: column;
@@ -434,7 +445,9 @@
                                     class="text-xs font-black text-tf-red ml-1">0%</span>
                                 <span id="incidentTypeTopCount" class="text-xs text-gray-500 ml-1">(0)</span>
                             </p>
-                            <canvas id="incidentTypeChart"></canvas>
+                            <div class="breakdown-chart-wrap">
+                                <canvas id="incidentTypeChart"></canvas>
+                            </div>
                         </div>
                         <div class="p-4 rounded-xl border border-gray-100 bg-gray-50/50">
                             <div class="flex items-start justify-between gap-3 mb-3">
@@ -448,7 +461,9 @@
                                 <span id="vehicleTypeTopPercent" class="text-xs font-black text-tf-red ml-1">0%</span>
                                 <span id="vehicleTypeTopCount" class="text-xs text-gray-500 ml-1">(0)</span>
                             </p>
-                            <canvas id="vehicleTypeChart"></canvas>
+                            <div class="breakdown-chart-wrap">
+                                <canvas id="vehicleTypeChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -493,10 +508,17 @@
                     @else
                         <div id="addressCountsList" class="space-y-3">
                             @foreach ($addressCounts as $address)
+                                @php
+                                    $shortAddress = preg_replace(
+                                        '/,\s*Calabarzon\s*,\s*\d{4}\s*,\s*Philippines\s*$/i',
+                                        '',
+                                        (string) ($address->location_name ?? ''),
+                                    );
+                                @endphp
                                 <div>
                                     <div class="flex items-center justify-between gap-4 mb-1.5">
                                         <p class="text-sm font-semibold text-gray-700 truncate">
-                                            {{ $address->location_name }}</p>
+                                            {{ $shortAddress }}</p>
                                         <span class="text-xs font-black text-tf-blue uppercase shrink-0">
                                             {{ $address->total_incidents }}
                                             report{{ (int) $address->total_incidents === 1 ? '' : 's' }}
@@ -641,6 +663,10 @@
                 .replace(/'/g, '&#039;');
         }
 
+        function formatTopAddressLabel(value) {
+            return String(value ?? '').replace(/,\s*Calabarzon\s*,\s*\d{4}\s*,\s*Philippines\s*$/i, '').trim();
+        }
+
         function getStatusMeta(status) {
             const statusValue = (status || '').toLowerCase();
             const isResolved = ['resolved', 'completed', 'closed'].includes(statusValue);
@@ -767,12 +793,13 @@
             };
         }
 
-        function createBreakdownChart(chartId, breakdown) {
+        function createBreakdownChart(chartId, breakdown, chartType = 'doughnut') {
             const chartData = normalizeBreakdownData(breakdown);
             const chartCtx = document.getElementById(chartId).getContext('2d');
+            const isPieChart = chartType === 'pie';
 
             return new Chart(chartCtx, {
-                type: 'doughnut',
+                type: chartType,
                 data: {
                     labels: chartData.labels,
                     datasets: [{
@@ -783,7 +810,7 @@
                     }]
                 },
                 options: {
-                    cutout: '58%',
+                    cutout: isPieChart ? 0 : '58%',
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -848,7 +875,7 @@
         const incidentTypeBreakdown = @json($incidentTypeBreakdown);
         const vehicleTypeBreakdown = @json($vehicleTypeBreakdown);
 
-        const incidentTypeChart = createBreakdownChart('incidentTypeChart', incidentTypeBreakdown);
+        const incidentTypeChart = createBreakdownChart('incidentTypeChart', incidentTypeBreakdown, 'pie');
         const vehicleTypeChart = createBreakdownChart('vehicleTypeChart', vehicleTypeBreakdown);
 
         updateTopTypeSummary('incidentType', incidentTypeBreakdown);
@@ -988,7 +1015,7 @@
                 return `
                     <div>
                         <div class="flex items-center justify-between gap-4 mb-1">
-                            <p class="text-sm font-semibold text-gray-700 truncate">${escapeHtml(address.location_name)}</p>
+                            <p class="text-sm font-semibold text-gray-700 truncate">${escapeHtml(formatTopAddressLabel(address.location_name))}</p>
                             <span class="text-xs font-black text-tf-blue uppercase">${total} report${total === 1 ? '' : 's'}</span>
                         </div>
                         <div class="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
