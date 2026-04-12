@@ -39,15 +39,72 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
-        .stat-card {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(11, 61, 145, 0.1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s;
+        .dashboard-surface {
+            background: linear-gradient(180deg, #f8fbff 0%, #f3f6fb 100%);
         }
 
-        .stat-card:hover {
-            transform: translateY(-3px);
+        .glass-card {
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 12px 26px rgba(2, 6, 23, 0.06);
+            backdrop-filter: blur(8px);
+        }
+
+        .panel-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: #0f172a;
+        }
+
+        .control-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.8rem;
+            padding: 0.6rem 0.85rem;
+            background: #ffffff;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: #0B3D91;
+            box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.12);
+        }
+
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            box-shadow: 0 10px 26px rgba(2, 6, 23, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0B3D91, #2563eb);
+            opacity: 0.9;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 30px rgba(2, 6, 23, 0.1);
+        }
+
+        .metric-icon {
+            height: 2rem;
+            width: 2rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(11, 61, 145, 0.1);
+            color: #0B3D91;
         }
 
         .status-badge-pending {
@@ -60,6 +117,11 @@
             color: #854d0e;
         }
 
+        .status-badge-accepted {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
         .status-badge-resolved {
             background-color: #dcfce7;
             color: #166534;
@@ -69,6 +131,18 @@
             max-height: 30rem;
             overflow-y: auto;
             scrollbar-width: thin;
+        }
+
+        .recent-item {
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            background: #ffffff;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+        }
+
+        .recent-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(148, 163, 184, 0.35);
+            box-shadow: 0 10px 18px rgba(2, 6, 23, 0.06);
         }
 
         .pulse-marker {
@@ -163,19 +237,43 @@
         .legend-filter {
             cursor: pointer;
             border-radius: 9999px;
-            padding: 0.15rem 0.45rem;
-            transition: background-color 0.2s ease, color 0.2s ease;
+            padding: 0.3rem 0.7rem;
+            border: 1px solid transparent;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
 
         .legend-filter.is-active {
-            background-color: #e2e8f0;
-            color: #0f172a;
+            background-color: #dbeafe;
+            border-color: #93c5fd;
+            color: #1e3a8a;
         }
 
         .breakdown-chart-wrap {
             width: min(100%, 230px);
             height: 230px;
             margin: 0 auto;
+        }
+
+        .chart-card {
+            border-radius: 0.9rem;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            padding: 1rem;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 0.5rem;
+            border-radius: 9999px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, #0B3D91, #2563eb);
+            transition: width 0.5s ease;
         }
 
         .breakdown-chart-wrap canvas {
@@ -216,7 +314,7 @@
 
         @include('investigator.components.left_sidebar')
 
-        <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-gray-50">
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 dashboard-surface">
             @php
                 $maxAddressCount = max(1, (int) ($addressCounts->max('total_incidents') ?? 1));
                 $monthOptions = [
@@ -237,18 +335,21 @@
 
             {{-- Period Filters --}}
             <section>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <div class="glass-card p-5 md:p-6 rounded-2xl relative overflow-hidden">
+                    <div class="absolute -top-14 -right-12 h-36 w-36 rounded-full bg-blue-100/60 blur-2xl"></div>
+                    <div class="absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-red-100/50 blur-2xl"></div>
+                    <div class="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div>
-                            <h3 class="font-bold text-base flex items-center gap-2">
-                                <i class="fa-solid fa-filter text-tf-blue"></i> Dashboard Period Filter
+                            <p class="text-[11px] font-black uppercase tracking-[0.18em] text-tf-blue/80 mb-1">Dashboard
+                                Control</p>
+                            <h3 class="panel-title flex items-center gap-2">
+                                <i class="fa-solid fa-filter text-tf-blue"></i> Period Filter
                             </h3>
-                            <p class="text-xs text-gray-500 mt-1">Choose month and year to update all dashboard
-                                breakdowns.</p>
+                            <p class="text-xs text-slate-500 mt-1">Choose month and year to refresh map, charts, and
+                                counters.</p>
                         </div>
                         <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
-                            <select id="filterMonth"
-                                class="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100">
+                            <select id="filterMonth" class="control-input">
                                 <option value="">All Months</option>
                                 @foreach ($monthOptions as $monthValue => $monthLabel)
                                     <option value="{{ $monthValue }}" @selected((int) ($selectedMonth ?? 0) === $monthValue)>
@@ -256,8 +357,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <select id="filterYear"
-                                class="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100">
+                            <select id="filterYear" class="control-input">
                                 <option value="">All Years</option>
                                 @foreach ($availableYears as $yearValue)
                                     <option value="{{ $yearValue }}" @selected((int) ($selectedYear ?? 0) === (int) $yearValue)>
@@ -266,8 +366,8 @@
                                 @endforeach
                             </select>
                             <button id="applyPeriodFilterBtn" type="button"
-                                class="bg-tf-blue text-white text-sm font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-                                Apply Filter
+                                class="bg-tf-blue text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:brightness-110 transition-all shadow-md shadow-blue-900/20">
+                                <i class="fa-solid fa-sliders mr-1.5"></i>Apply Filter
                             </button>
                         </div>
                     </div>
@@ -276,52 +376,70 @@
 
             {{-- Stat Cards --}}
             <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
-                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Total Incidents</p>
+                <div class="metric-card p-4 md:p-5">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs uppercase font-bold text-slate-500">Total Incidents</p>
+                        <span class="metric-icon"><i class="fa-solid fa-database text-sm"></i></span>
+                    </div>
                     <div class="flex items-end justify-between">
                         <h2 id="totalIncidentsValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($totalIncidents) }}</h2>
-                        <span class="text-red-500 text-xs font-bold"><i class="fa-solid fa-database"></i> Live</span>
+                        <span class="text-blue-700 text-xs font-bold uppercase tracking-wider">Live</span>
                     </div>
                 </div>
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
-                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Accepted</p>
+                <div class="metric-card p-4 md:p-5">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs uppercase font-bold text-slate-500">Accepted</p>
+                        <span class="metric-icon"><i class="fa-solid fa-user-check text-sm"></i></span>
+                    </div>
                     <div class="flex items-end justify-between">
                         <h2 id="acceptedValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($acceptedCount) }}</h2>
-                        <i class="fa-solid fa-user-check text-red-500 text-lg md:text-xl"></i>
+                        <span class="text-xs text-slate-400 font-semibold">Verified cases</span>
                     </div>
                 </div>
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
-                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Declined</p>
+                <div class="metric-card p-4 md:p-5">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs uppercase font-bold text-slate-500">Declined</p>
+                        <span class="metric-icon"><i class="fa-solid fa-circle-xmark text-sm"></i></span>
+                    </div>
                     <div class="flex items-end justify-between">
                         <h2 id="declinedValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($declinedCount) }}</h2>
-                        <i class="fa-solid fa-circle-xmark text-red-500 text-lg md:text-xl"></i>
+                        <span class="text-xs text-slate-400 font-semibold">Dismissed reports</span>
                     </div>
                 </div>
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
-                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Pending Review</p>
+                <div class="metric-card p-4 md:p-5">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs uppercase font-bold text-slate-500">Pending Review</p>
+                        <span class="metric-icon"><i class="fa-solid fa-triangle-exclamation text-sm"></i></span>
+                    </div>
                     <div class="flex items-end justify-between">
                         <h2 id="pendingReviewValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($pendingReviewCount) }}</h2>
-                        <i class="fa-solid fa-triangle-exclamation text-red-500 text-lg md:text-xl"></i>
+                        <span class="text-xs text-slate-400 font-semibold">Needs action</span>
                     </div>
                 </div>
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
-                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Under Investigation</p>
+                <div class="metric-card p-4 md:p-5">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs uppercase font-bold text-slate-500">Under Investigation</p>
+                        <span class="metric-icon"><i class="fa-solid fa-hourglass-half text-sm"></i></span>
+                    </div>
                     <div class="flex items-end justify-between">
                         <h2 id="underInvestigationValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($underInvestigationCount) }}</h2>
-                        <i class="fa-solid fa-hourglass-half text-red-500 text-lg md:text-xl"></i>
+                        <span class="text-xs text-slate-400 font-semibold">In progress</span>
                     </div>
                 </div>
-                <div class="stat-card p-4 md:p-5 rounded-xl border-l-4 border-red-500">
-                    <p class="text-xs uppercase font-bold text-gray-500 mb-1">Resolved</p>
+                <div class="metric-card p-4 md:p-5">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs uppercase font-bold text-slate-500">Resolved</p>
+                        <span class="metric-icon"><i class="fa-solid fa-check-double text-sm"></i></span>
+                    </div>
                     <div class="flex items-end justify-between">
                         <h2 id="resolvedTodayValue" class="text-2xl md:text-3xl font-black">
                             {{ number_format($resolvedTodayCount) }}</h2>
-                        <i class="fa-solid fa-check-double text-red-500 text-lg md:text-xl"></i>
+                        <span class="text-xs text-slate-400 font-semibold">Closed cases</span>
                     </div>
                 </div>
             </section>
@@ -330,21 +448,20 @@
             <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
                 {{-- Map Card --}}
-                <div id="mapCard"
-                    class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+                <div id="mapCard" class="lg:col-span-2 glass-card rounded-2xl flex flex-col overflow-hidden">
 
                     <div
-                        class="map-header flex flex-wrap justify-between items-center gap-3 px-4 pt-4 pb-3 border-b border-gray-50">
-                        <h3 class="font-bold text-base flex items-center gap-2">
-                            <i class="fa-solid fa-map-pin text-tf-red"></i>Real-Time Incident Map
+                        class="map-header flex flex-wrap justify-between items-center gap-3 px-4 pt-4 pb-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                        <h3 class="panel-title flex items-center gap-2">
+                            <i class="fa-solid fa-map-pin text-tf-red"></i> Real-Time Incident Map
                         </h3>
                         <div class="map-actions flex items-center gap-2">
                             <span id="mapPinsCount"
-                                class="text-xs bg-tf-blue text-white px-3 py-1 rounded-lg font-bold">
+                                class="text-xs bg-tf-blue text-white px-3 py-1 rounded-lg font-bold shadow-sm shadow-blue-900/20">
                                 {{ $mapIncidents->count() }} Pins
                             </span>
                             <button id="expandMapBtn" type="button"
-                                class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-lg font-bold hover:bg-gray-200 transition-colors flex items-center gap-1">
+                                class="text-xs bg-white border border-slate-200 text-slate-700 px-3 py-1 rounded-lg font-bold hover:bg-slate-100 transition-colors flex items-center gap-1">
                                 <i class="fa-solid fa-expand"></i> Fullscreen
                             </button>
                         </div>
@@ -353,7 +470,7 @@
                     <div id="map" class="w-full h-52 sm:h-72 md:h-80 lg:h-[30rem]"></div>
 
                     <div
-                        class="map-legend flex flex-wrap items-center gap-x-5 gap-y-1.5 px-4 py-3 border-t border-gray-100 text-xs font-semibold text-gray-500">
+                        class="map-legend flex flex-wrap items-center gap-x-5 gap-y-1.5 px-4 py-3 border-t border-slate-100 text-xs font-semibold text-slate-500 bg-white/90">
                         <span class="text-gray-400 uppercase tracking-wide text-[10px]">Legend:</span>
                         <button type="button" class="legend-filter flex items-center gap-1.5"
                             data-map-filter="pending">
@@ -373,8 +490,11 @@
                 </div>
 
                 {{-- Recent Submissions --}}
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-                    <h3 class="font-bold text-lg mb-4">Recent Submissions</h3>
+                <div class="glass-card p-6 rounded-2xl flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="panel-title">Recent Submissions</h3>
+                        <span class="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-bold">Realtime</span>
+                    </div>
                     <div id="recentSubmissionsList" class="space-y-4 recent-submission-list pr-2">
                         @forelse ($recentIncidents as $incident)
                             @php
@@ -397,8 +517,7 @@
                                     $badgeClass = 'status-badge-pending';
                                 }
                             @endphp
-                            <div
-                                class="flex gap-4 p-3 recent-item hover:bg-gray-50 rounded-lg border-b border-gray-50">
+                            <div class="flex gap-4 p-3 recent-item rounded-xl">
                                 <div class="w-2 h-12 rounded-full {{ $lineClass }}"></div>
                                 <div class="flex-1">
                                     <p class="text-xs text-gray-500 font-bold uppercase">Incident
@@ -420,19 +539,19 @@
                         @endforelse
                     </div>
                     <a href="{{ route('investigator.incident.report.page') }}"
-                        class="mt-4 w-full border border-tf-blue text-tf-blue py-2 rounded text-sm font-bold hover:bg-tf-blue hover:text-black transition-colors text-center">View
+                        class="mt-4 w-full border border-tf-blue text-tf-blue py-2.5 rounded-xl text-sm font-bold hover:bg-tf-blue hover:text-white transition-colors text-center">View
                         All Reports</a>
                 </div>
             </section>
 
             {{-- Incident and Vehicle Type Breakdown --}}
             <section>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-base mb-5 flex items-center gap-2">
+                <div class="glass-card p-5 rounded-2xl">
+                    <h3 class="panel-title mb-5 flex items-center gap-2">
                         <i class="fa-solid fa-chart-pie text-tf-red"></i> Type Breakdown by Percentage
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+                        <div class="chart-card">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Incident Type
                                 </h4>
@@ -449,7 +568,7 @@
                                 <canvas id="incidentTypeChart"></canvas>
                             </div>
                         </div>
-                        <div class="p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+                        <div class="chart-card">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Vehicle Type
                                 </h4>
@@ -473,16 +592,16 @@
 
             {{-- Demographics --}}
             <section>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-base mb-5 flex items-center gap-2">
+                <div class="glass-card p-5 rounded-2xl">
+                    <h3 class="panel-title mb-5 flex items-center gap-2">
                         <i class="fa-solid fa-chart-column text-tf-blue"></i> High-Risk Demographics
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
+                        <div class="chart-card">
                             <h4 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Age Groups</h4>
                             <canvas id="ageChart"></canvas>
                         </div>
-                        <div>
+                        <div class="chart-card">
                             <h4 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Sex Distribution
                             </h4>
                             <canvas id="sexChart"></canvas>
@@ -492,9 +611,9 @@
             </section>
             {{-- Address Counts --}}
             <section>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <div class="glass-card p-5 rounded-2xl">
                     <div class="flex items-center justify-between mb-5">
-                        <h3 class="font-bold text-base flex items-center gap-2">
+                        <h3 class="panel-title flex items-center gap-2">
                             <i class="fa-solid fa-location-dot text-tf-red"></i> Incident Count Per Address
                         </h3>
                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Top 10
@@ -524,8 +643,8 @@
                                             report{{ (int) $address->total_incidents === 1 ? '' : 's' }}
                                         </span>
                                     </div>
-                                    <div class="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                                        <div class="h-full rounded-full bg-tf-blue transition-all duration-500"
+                                    <div class="progress-track">
+                                        <div class="progress-fill"
                                             style="width: {{ min(100, ((int) $address->total_incidents / $maxAddressCount) * 100) }}%">
                                         </div>
                                     </div>
@@ -977,7 +1096,7 @@
                 const statusMeta = getStatusMeta(incident.status);
 
                 return `
-                    <div class="flex gap-4 p-3 recent-item hover:bg-gray-50 rounded-lg border-b border-gray-50">
+                    <div class="flex gap-4 p-3 recent-item rounded-xl">
                         <div class="w-2 h-12 rounded-full ${statusMeta.lineClass}"></div>
                         <div class="flex-1">
                             <p class="text-xs text-gray-500 font-bold uppercase">Incident #${escapeHtml(incident.report_number)}</p>
@@ -1018,8 +1137,8 @@
                             <p class="text-sm font-semibold text-gray-700 truncate">${escapeHtml(formatTopAddressLabel(address.location_name))}</p>
                             <span class="text-xs font-black text-tf-blue uppercase">${total} report${total === 1 ? '' : 's'}</span>
                         </div>
-                        <div class="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                            <div class="h-full bg-tf-blue" style="width: ${widthPercent}%"></div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: ${widthPercent}%"></div>
                         </div>
                     </div>
                 `;
