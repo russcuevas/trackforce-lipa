@@ -8,6 +8,7 @@ use App\Http\Controllers\investigator\DashboardController;
 use App\Http\Controllers\investigator\DocumentationController;
 use App\Http\Controllers\investigator\IncidentReportController;
 use App\Http\Controllers\investigator\NotificationController;
+use App\Http\Controllers\investigator\PrintController;
 use App\Http\Controllers\investigator\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TrackCaseController;
@@ -73,6 +74,9 @@ Route::middleware('investigator.auth')->group(function () {
     Route::get('/investigator/documentations/reports/{incident}/print', [DocumentationController::class, 'DocumentationPrintReportPage'])
         ->whereNumber('incident')
         ->name('investigator.documentation.print.report.page');
+    Route::post('/investigator/documentations/reports/{incident}/save-narrative', [DocumentationController::class, 'SaveNarrativeRequest'])
+        ->whereNumber('incident')
+        ->name('investigator.documentation.save.narrative');
 
     // INVESTIGATOR INCIDENTS ROUTE
     Route::get('/investigator/incidents/reports', [IncidentReportController::class, 'IncidentReportPage'])->name('investigator.incident.report.page');
@@ -91,6 +95,9 @@ Route::middleware('investigator.auth')->group(function () {
 
     // INVESTIGATOR AUDIT LOGS ROUTE
     Route::get('/investigator/logs', [AuditLogsController::class, 'LogsPage'])->name('investigator.logs.page');
+
+    // INVESTIGATOR PRINT ROUTE
+    Route::get('/investigator/print', [PrintController::class, 'PrintReportsPage'])->name('investigator.print.page');
 });
 Route::get('/investigator/accounts', [AccountController::class, 'AccountPage'])->name('investigator.account.page');
 Route::post('/investigator/accounts/create', [AccountController::class, 'CreateAccountRequest'])->name('investigator.account.create');

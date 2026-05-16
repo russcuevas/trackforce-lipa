@@ -87,4 +87,20 @@ class DocumentationController extends Controller
             'evidences' => $evidences,
         ]);
     }
+
+    public function SaveNarrativeRequest(Request $request, int $incident)
+    {
+        $request->validate([
+            'involved_vehicles_narrative' => 'nullable|string',
+            'narration_of_accidents' => 'nullable|string',
+        ]);
+
+        DB::table('incidents')->where('id', $incident)->update([
+            'involved_vehicles_narrative' => $request->involved_vehicles_narrative,
+            'narration_of_accidents' => $request->narration_of_accidents,
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Narrative saved successfully.');
+    }
 }

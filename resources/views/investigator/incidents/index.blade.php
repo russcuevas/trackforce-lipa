@@ -133,7 +133,7 @@
         <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 class="text-2xl font-black text-tf-blue uppercase tracking-tight">Incident Reports</h1>
+                    <h1 class="text-2xl font-black text-tf-blue uppercase tracking-tight">Traffic Incident Reports</h1>
                     <p class="text-sm text-gray-500">Manage, review, and update submitted incident cases.</p>
                 </div>
                 <div class="flex gap-2">

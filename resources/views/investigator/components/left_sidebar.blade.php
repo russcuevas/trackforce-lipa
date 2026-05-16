@@ -61,6 +61,14 @@
             <span class="hidden lg:block">Audit Trail Logs</span>
         </a>
 
+        <a href="{{ route('investigator.print.page') }}"
+            class="flex items-center gap-4 p-3 rounded-lg group
+            {{ request()->routeIs('investigator.print.page') ? 'nav-active text-white' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
+            <i
+                class="fa-solid fa-print {{ request()->routeIs('investigator.print.page') ? 'text-tf-yellow' : 'group-hover:text-tf-yellow' }}"></i>
+            <span class="hidden lg:block">Print Reports</span>
+        </a>
+
     </nav>
 
     <div class="p-4 border-t border-white/10">
