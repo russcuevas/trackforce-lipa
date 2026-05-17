@@ -80,27 +80,60 @@ class DocumentationController extends Controller
             ->orderBy('id')
             ->get();
 
+        $reportInvestigators = DB::table('incident_report_investigators')
+            ->where('incident_id', $incidentData->id)
+            ->orderBy('id')
+            ->get();
+
         return view('investigator.documentations.print.print_reports', [
             'incident' => $incidentData,
             'involvedParties' => $involvedParties,
             'vehicles' => $vehicles,
             'evidences' => $evidences,
+            'reportInvestigators' => $reportInvestigators,
         ]);
     }
 
     public function SaveNarrativeRequest(Request $request, int $incident)
     {
         $request->validate([
+            'investigation_report_title' => 'nullable|string',
             'involved_vehicles_narrative' => 'nullable|string',
             'narration_of_accidents' => 'nullable|string',
+            'investigators' => 'nullable|array',
+            'investigators.*.name' => 'required|string',
+            'investigators.*.rank' => 'required|string',
         ]);
 
-        DB::table('incidents')->where('id', $incident)->update([
-            'involved_vehicles_narrative' => $request->involved_vehicles_narrative,
-            'narration_of_accidents' => $request->narration_of_accidents,
-            'updated_at' => now(),
-        ]);
+        DB::beginTransaction();
+        try {
+            DB::table('incidents')->where('id', $incident)->update([
+                'investigation_report_title' => $request->investigation_report_title,
+                'involved_vehicles_narrative' => $request->involved_vehicles_narrative,
+                'narration_of_accidents' => $request->narration_of_accidents,
+                'updated_at' => now(),
+            ]);
 
-        return back()->with('success', 'Narrative saved successfully.');
+            // Sync investigators
+            DB::table('incident_report_investigators')->where('incident_id', $incident)->delete();
+            
+            if ($request->has('investigators')) {
+                foreach ($request->investigators as $investigator) {
+                    DB::table('incident_report_investigators')->insert([
+                        'incident_id' => $incident,
+                        'investigator_name' => $investigator['name'],
+                        'rank' => $investigator['rank'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return back()->with('success', 'Report details and investigators saved successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to save changes: ' . $e->getMessage());
+        }
     }
 }

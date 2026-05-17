@@ -108,6 +108,7 @@
         <form action="{{ route('investigator.documentation.save.narrative', $incident->id) }}" method="POST"
             id="saveForm">
             @csrf
+            <input type="hidden" name="investigation_report_title" id="hidden_title">
             <input type="hidden" name="involved_vehicles_narrative" id="hidden_involved">
             <input type="hidden" name="narration_of_accidents" id="hidden_narration">
             <button type="button" onclick="submitForm()"
@@ -128,6 +129,13 @@
         </div>
     @endif
 
+    @if (session('error'))
+        <div class="max-w-4xl mx-auto mb-2 no-print bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded relative"
+            role="alert">
+            <span class="block sm:inline text-xs">{{ session('error') }}</span>
+        </div>
+    @endif
+
     <div class="print-container">
         <!-- Header -->
         <div class="flex justify-between items-center mb-4">
@@ -143,15 +151,16 @@
                 <p class="text-[9px]">B Morada Ave., Brgy. 1, Lipa City</p>
             </div>
             <div class="w-16 flex justify-end">
-                <div
-                    class="w-12 h-12 bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-[7px] text-gray-400">
-                    STATION SEAL
-                </div>
+                <img src="{{ asset('images/logo.jpeg') }}" alt="PNP Logo" class="w-full">
+
             </div>
         </div>
 
         <div class="text-center mb-4">
-            <h1 class="text-md font-bold underline decoration-2 underline-offset-4">INITIAL INVESTIGATION REPORT</h1>
+            <h1 id="investigation_report_title" contenteditable="true" spellcheck="false"
+                class="text-md font-bold underline decoration-2 underline-offset-4 uppercase">
+                {{ $incident->investigation_report_title ?? 'INITIAL INVESTIGATION REPORT' }}
+            </h1>
         </div>
 
         <div class="space-y-2 text-[12px] mb-4">
@@ -221,19 +230,40 @@
             </div>
 
             <div id="investigators-container" class="flex flex-wrap justify-center items-start gap-x-12 gap-y-8">
-                <div class="signature-block relative group">
-                    <button type="button" onclick="this.parentElement.remove()"
-                        class="no-print absolute -top-2 -right-2 bg-red-500 text-white w-4 h-4 rounded-full hidden group-hover:flex items-center justify-center text-[8px]">
-                        X
-                    </button>
-                    <div class="h-8 flex items-end justify-center">
-                        <!-- Space for signature -->
+                @if (count($reportInvestigators) > 0)
+                    @foreach ($reportInvestigators as $investigator)
+                        <div class="signature-block relative group">
+                            <button type="button" onclick="this.parentElement.remove()"
+                                class="no-print absolute -top-2 -right-2 bg-red-500 text-white w-4 h-4 rounded-full hidden group-hover:flex items-center justify-center text-[8px]">
+                                X
+                            </button>
+                            <div class="h-8 flex items-end justify-center">
+                                <!-- Space for signature -->
+                            </div>
+                            <div class="signature-line" contenteditable="true" spellcheck="false">
+                                {{ $investigator->investigator_name }}
+                            </div>
+                            <p class="text-[9px] font-bold investigator-rank" contenteditable="true"
+                                spellcheck="false">
+                                {{ $investigator->rank }}</p>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="signature-block relative group">
+                        <button type="button" onclick="this.parentElement.remove()"
+                            class="no-print absolute -top-2 -right-2 bg-red-500 text-white w-4 h-4 rounded-full hidden group-hover:flex items-center justify-center text-[8px]">
+                            X
+                        </button>
+                        <div class="h-8 flex items-end justify-center">
+                            <!-- Space for signature -->
+                        </div>
+                        <div class="signature-line" contenteditable="true" spellcheck="false">
+                            {{ $incident->investigator_name ?? 'INVESTIGATOR NAME' }}
+                        </div>
+                        <p class="text-[9px] font-bold investigator-rank" contenteditable="true" spellcheck="false">
+                            Traffic Investigator</p>
                     </div>
-                    <div class="signature-line" contenteditable="true" spellcheck="false">
-                        {{ $incident->investigator_name ?? 'INVESTIGATOR NAME' }}
-                    </div>
-                    <p class="text-[9px] font-bold">Traffic Investigator</p>
-                </div>
+                @endif
             </div>
         </div>
 
@@ -247,9 +277,37 @@
 
     <script>
         function submitForm() {
+            const form = document.getElementById('saveForm');
+            document.getElementById('hidden_title').value = document.getElementById('investigation_report_title').innerText
+                .trim();
             document.getElementById('hidden_involved').value = document.getElementById('involved_vehicles_narrative').value;
             document.getElementById('hidden_narration').value = document.getElementById('narration_of_accidents').value;
-            document.getElementById('saveForm').submit();
+
+            // Clear old investigator inputs if any
+            const oldInputs = form.querySelectorAll('input[name^="investigators"]');
+            oldInputs.forEach(input => input.remove());
+
+            // Collect investigators
+            const container = document.getElementById('investigators-container');
+            const blocks = container.querySelectorAll('.signature-block');
+            blocks.forEach((block, index) => {
+                const name = block.querySelector('.signature-line').innerText.trim();
+                const rank = block.querySelector('.investigator-rank').innerText.trim();
+
+                const nameInput = document.createElement('input');
+                nameInput.type = 'hidden';
+                nameInput.name = `investigators[${index}][name]`;
+                nameInput.value = name;
+                form.appendChild(nameInput);
+
+                const rankInput = document.createElement('input');
+                rankInput.type = 'hidden';
+                rankInput.name = `investigators[${index}][rank]`;
+                rankInput.value = rank;
+                form.appendChild(rankInput);
+            });
+
+            form.submit();
         }
 
         function addInvestigator() {
@@ -258,11 +316,11 @@
             newBlock.className = 'signature-block relative group';
             newBlock.innerHTML = `
                 <button type="button" onclick="this.parentElement.remove()" class="no-print absolute -top-2 -right-2 bg-red-500 text-white w-4 h-4 rounded-full hidden group-hover:flex items-center justify-center text-[8px]">
-                    <i class="fa-solid fa-x"></i>
+                    X
                 </button>
                 <div class="h-8 flex items-end justify-center"></div>
                 <div class="signature-line" contenteditable="true" spellcheck="false">INVESTIGATOR NAME</div>
-                <p class="text-[9px] font-bold">Traffic Investigator</p>
+                <p class="text-[9px] font-bold investigator-rank" contenteditable="true" spellcheck="false">Traffic Investigator</p>
             `;
 
             // Insert in the middle if there are already investigators

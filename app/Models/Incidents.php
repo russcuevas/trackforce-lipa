@@ -11,6 +11,7 @@ class Incidents extends Model
 
     protected $fillable = [
         'report_number',
+        'investigation_report_title',
         'incident_type',
 
         // Location
@@ -49,5 +50,10 @@ class Incidents extends Model
     public function assignedInvestigator()
     {
         return $this->belongsTo(Investigator::class, 'assigned_investigator_id');
+    }
+
+    public function reportInvestigators()
+    {
+        return $this->hasMany(IncidentReportInvestigator::class, 'incident_id');
     }
 }
